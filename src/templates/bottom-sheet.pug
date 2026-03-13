@@ -1,7 +1,8 @@
-#praktiki-bottom-sheet(data-state="open")
-    header
-        h2.headline 
-        md-icon-button.state-toggle(aria-label="collapse bottom sheet", toggle)
-            md-icon bottom_panel_close
-            md-icon(slot="selected") bottom_panel_open
-    block content
+.headline Praktiki for AXIS
+md-icon-button#prakitki-sheet-close-button(aria-label="close side sheet")
+    md-icon close
+nav#praktiki-primary-navigation
+    md-icon-button(label="help"): md-icon help
+    md-icon-button(label="settings"): md-icon settings
+block main
+block aside

@@ -242,10 +242,10 @@ md-outlined-select {
   margin-top: 0.25rem;
 }
 
-.md-badge {
+.allow-badge {
   position: relative;
 }
-.md-badge::after {
+.allow-badge::after {
   content: attr(data-badge);
   position: absolute;
   top: -10px;
@@ -263,7 +263,7 @@ md-outlined-select {
   max-width: 34px;
   height: 16px;
 }
-.md-badge[data-badge=""]::after, .md-badge:not(:has([data-badge]))::after {
+.allow-badge[data-badge=""]::after, .allow-badge:not(:has([data-badge]))::after {
   display: none;
 }
 
@@ -306,547 +306,302 @@ md-outlined-select {
   order: 3;
 }
 
-:root {
-  --praktiki-sheet-inset: 16px;
-  --praktiki-sheet-padding: 24px;
-  --praktiki-sheet-border-radius: 16px;
-  --praktiki-side-sheet-open-width: 400px;
-  --praktiki-side-sheet-collapsed-width: 56px;
-  --praktiki-bottom-sheet-max-width: 640px;
-  --praktiki-bottom-sheet-collapsed-height: 48px;
-}
-
 body:has(#sugarcrm) {
-  --praktiki-side-sheet-offset-top: calc(40px + var(--praktiki-sheet-inset));
+  --pi-sheet-top: 40px;
 }
 body:has(#app) {
-  --praktiki-side-sheet-offset-top: calc(76px + var(--praktiki-sheet-inset));
+  --pi-sheet-top: 76px;
+}
+body:has(#praktiki-sheet.side-sheet[data-state=open]) {
+  --pi-sheet-width: 360px;
+}
+body:has(#praktiki-sheet.side-sheet[data-state=closed]) {
+  --pi-sheet-width: 56px;
+}
+body:has(#praktiki-sheet.bottom-sheet[data-state=open]) {
+  --pi-sheet-height: 80svh;
+  --pi-sheet-width: clamp(440px, 100svw, 880px);
+}
+body:has(#praktiki-sheet.bottom-sheet[data-state=closed]) {
+  --pi-sheet-height: 56px;
+  --pi-sheet-width: clamp(440px, 100svw, 880px);
 }
 
 .display-none {
-  display: none;
+  display: none !important;
 }
 
-#content {
-  right: var(--praktiki-side-sheet-collapsed-width);
-}
-#content .headerpane {
-  width: calc(100vw - 3.75rem - var(--praktiki-side-sheet-collapsed-width));
-}
-#content div:has(> .dfab-icon) {
-  right: var(--praktiki-side-sheet-collapsed-width);
+.hidden {
+  visibility: hidden !important;
 }
 
-#app main:has(#patientName) {
-  margin-bottom: var(--praktiki-bottom-sheet-collapsed-width);
+body:has(#praktiki-sheet) #content {
+  right: var(--pi-sheet-width) !important;
 }
-#app main:not(:has(#patientName)) {
-  margin-right: var(--praktiki-side-sheet-collapsed-width);
+body:has(#praktiki-sheet) #content .headerpane {
+  width: calc(100vw - 3.75rem - var(--pi-sheet-width));
+}
+body:has(#praktiki-sheet) #content div:has(> .dfab-icon) {
+  right: var(--pi-sheet-width);
 }
 
-#praktiki-side-sheet {
-  display: block;
-  position: fixed;
-  inset: var(--praktiki-sheet-inset) var(--praktiki-sheet-inset) var(--praktiki-sheet-inset) auto;
-  padding: var(--praktiki-sheet-padding);
+body:has(#praktiki-sheet) #app main:has(#patientName) {
+  margin-bottom: var(--pi-sheet-height) !important;
+}
+body:has(#praktiki-sheet) #app main:not(:has(#patientName)) {
+  margin-right: var(--pi-sheet-width) !important;
+}
+body:has(#praktiki-sheet) #app main .table-scrollable {
+  container-type: inline-size;
+}
+@container (max-width: 800px) and (min-width: 400px) {
+  body:has(#praktiki-sheet) #app main .table-scrollable th:nth-of-type(n + 2):not(:nth-of-type(3)):not(:nth-of-type(6)):not(:last-child),
+  body:has(#praktiki-sheet) #app main .table-scrollable td:nth-of-type(n + 2):not(:nth-of-type(3)):not(:nth-of-type(6)):not(:last-child) {
+    display: none;
+  }
+}
+@container (max-width: 399px) {
+  body:has(#praktiki-sheet) #app main .table-scrollable th:nth-of-type(n + 2):not(:last-child),
+  body:has(#praktiki-sheet) #app main .table-scrollable td:nth-of-type(n + 2):not(:last-child) {
+    display: none;
+  }
+}
+
+[id^=praktiki],
+[id^=praktiki] * {
   box-sizing: border-box;
-  border-radius: var(--praktiki-sheet-border-radius);
-  transition: width var(--md-sys-motion-duration-medium-1) var(--md-sys-motion-easing-standard);
-}
-#praktiki-side-sheet header {
-  display: flex;
-  flex-direction: row;
-  justify-items: left;
-  align-items: center;
-  margin-bottom: 8px;
-}
-#praktiki-side-sheet header .headline {
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 32px;
-  letter-spacing: 0px;
-}
-#praktiki-side-sheet header md-icon-button.state-toggle {
-  margin-left: auto;
-}
-#praktiki-side-sheet[data-state=open] {
-  width: var(--praktiki-side-sheet-open-width);
-}
-#praktiki-side-sheet[data-state=collapsed] {
-  width: var(--praktiki-side-sheet-collapsed-width);
-}
-#praktiki-side-sheet[data-state=collapsed] header {
-  justify-items: center;
-}
-#praktiki-side-sheet[data-state=collapsed] header .headline {
-  display: none;
-}
-#praktiki-side-sheet[data-state=collapsed] header md-icon-button.state-toggle {
-  margin: 0;
 }
 
-#prakitki-bottom-sheet {
-  display: block;
+#praktiki-sheet.side-sheet[data-state=open] {
   position: fixed;
-  inset: auto auto var(--praktiki-sheet-inset) 50%;
-  width: var(--praktiki-bottom-sheet-max-width);
-  translate: -50%;
-  padding: var(--praktiki-sheet-padding);
   box-sizing: border-box;
-  border-radius: var(--praktiki-sheet-border-radius);
+  inset: var(--pi-sheet-top) 0 0 auto;
+  width: var(--pi-sheet-width);
+  padding: 16px 0 16px 16px;
+  border-left: 1px solid var(--md-sys-color-on-background);
   background-color: var(--md-sys-color-background);
-  transition: height var(--md-sys-motion-duration-medium-1) var(--md-sys-motion-easing-standard);
-}
-#prakitki-bottom-sheet header {
-  display: flex;
-  position: relative;
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 8px;
-}
-#prakitki-bottom-sheet header .headline {
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 32px;
-  letter-spacing: 0px;
-}
-#prakitki-bottom-sheet header md-icon-button.state-toggle {
-  margin-left: auto;
-}
-#prakitki-bottom-sheet header::before {
-  position: absolute;
-  inset: 0 auto auto 50%;
-  translate: -50%;
-  font-family: "Material Symbols";
-  font-size: 24px;
-  font-weight: 400;
-  font-variation-settings: "FILL" 0, "GRAD" 0;
-  content: "drag_handle"/"";
-}
-#prakitki-bottom-sheet[data-state=open] {
-  height: 80svh;
-}
-#prakitki-bottom-sheet[data-state=collapsed] {
-  height: var(--praktiki-bottom-sheet-collapsed-height);
-}
-
-#praktiki-utilities {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  padding: 8px;
-}
-
-#praktiki-contact {
   display: grid;
-  grid-template-areas: "dropzone" "navigation" "tablist" "tabpanels";
-  align-items: stretch;
+  gap: 8px;
+  grid-template-columns: 1fr 56px;
+  grid-template-rows: auto 1fr;
 }
-#praktiki-contact #contact-drop-zone {
-  grid-area: "dropzone";
-  display: grid;
-  grid-template-areas: "photo summary summary" "flags flags flags";
-  padding: 4px;
-  border: 1px dashed var(--md-sys-color-on-background);
-  border-radius: 8px;
-}
-#praktiki-contact #contact-drop-zone .photo {
-  grid-area: "photo";
-}
-#praktiki-contact #contact-drop-zone .summary {
-  grid-area: "summary";
-}
-#praktiki-contact #contact-drop-zone .flags {
-  grid-area: "flags";
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-#praktiki-contact #contact-drop-zone:empty::after {
-  content: "drag and drop to select";
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
-}
-#praktiki-contact #contact-primary-navigation {
-  grid-area: "navigation";
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-#praktiki-contact #contact-primary-tabs {
-  grid-area: "tablist";
-}
-#praktiki-contact [id$=panel] {
-  grid-area: "tabpanels";
-}
-
-#praktiki-contact--collapsed-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#praktiki-utilities {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-}
-
-#praktiki-print .print-document-generator {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-}
-#praktiki-print .print-document-generator .selector {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-#praktiki-print .print-document-generator .selector md-outlined-select {
-  flex: 1;
-}
-#praktiki-print .print-document-generator .option > div {
-  width: 100%;
-}
-#praktiki-print .print-document-generator .option > div .description {
-  width: 100%;
-  text-wrap: pretty;
-}
-#praktiki-print .print-document-generator .option-superbill .modifiers {
-  display: flex;
-  flex-direction: column;
-}
-#praktiki-print .print-document-generator .option-superbill .modifiers fieldset {
-  width: 100%;
-}
-#praktiki-print .print-document-generator .option-excuse .modifiers {
-  display: grid;
-  grid-template-areas: "startLabel" "endLabel" "startInput" "endInput" "chipset" "chipset";
-}
-#praktiki-print .print-document-generator .option-excuse .modifiers label[for=superbill-range-start-date] {
-  grid-area: "startLabel";
-}
-#praktiki-print .print-document-generator .option-excuse .modifiers #superbill-range-start-date {
-  grid-area: "startInput";
-}
-#praktiki-print .print-document-generator .option-excuse .modifiers label[for=superbill-range-end-date] {
-  grid-area: "endLabel";
-}
-#praktiki-print .print-document-generator .option-excuse .modifiers #superbill-range-end-date {
-  grid-area: "endInput";
-}
-#praktiki-print .print-document-generator .option-excuse .modifiers md-chip-set {
-  grid-area: "chipset";
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-#praktiki-print .print-resource-selector {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-#praktiki-print .print-resource-selector .selector {
-  align-self: stretch;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-#praktiki-print .print-resource-selector .selector md-filled-icon-button {
-  margin-left: auto;
-}
-#praktiki-print .print-resource-selector .print-resource {
-  flex: 1;
-}
-#praktiki-print #print-document-editor {
-  transform: scale(0.6);
-}
-
-#print-document-editor {
-  width: fit-content;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.0625;
-}
-#print-document-editor .page {
-  --page-width: 8.5in;
-  --page-height: 11in;
-  --page-padding: 0.5in;
-  --page-header-height: calc(11in/16in);
-  --page-body-max-height: calc(var(--page-height) - var(--page-padding) * 2);
-  --page-body-height: calc(var(--page-body-max-height) - var(--page-header-height));
-  display: block;
-  position: relative;
-  box-sizing: border-box;
-  width: var(--page-width);
-  height: var(--page-height);
-  padding: var(--page-padding);
-  font-size: 0.1578947368;
-  background-color: #fff;
-  color: #000;
-}
-#print-document-editor .page .head {
-  position: relative;
-  height: var(--page-header-height);
-  display: grid;
-  grid-template-columns: 1fr 1.1875;
-  grid-template-rows: 1fr 0.25;
-}
-#print-document-editor .page .head .topline {
+#praktiki-sheet.side-sheet[data-state=open] .sheet-headline {
   grid-row: 1/2;
-  grid-column: 1/2;
-  justify-self: start;
-  align-self: start;
-}
-#print-document-editor .page .head .title {
-  grid-row: 2/3;
-  grid-column: 1/2;
-  justify-self: start;
-  align-self: end;
-  background-color: #000;
-  color: #fff;
-}
-#print-document-editor .page .head .logo {
-  grid-row: 1/3;
-  grid-column: 2/3;
-  justify-self: end;
   align-self: center;
+  justify-self: left;
 }
-#print-document-editor .page .body {
+#praktiki-sheet.side-sheet[data-state=open] .sheet-close {
+  grid-row: 1/2;
+  justify-self: center;
+  aspect-ratio: 1/1;
+}
+#praktiki-sheet.side-sheet[data-state=open] #pi-primary-navigation {
+  grid-row: 2/3;
+  grid-column: 2/3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#praktiki-sheet.side-sheet[data-state=open] #pi-primary-navigation md-divider {
+  margin-top: auto;
+}
+#praktiki-sheet.side-sheet[data-state=open] #pi-primary-navigation md-icon-button[data-selected=true] {
+  position: relative;
+}
+#praktiki-sheet.side-sheet[data-state=open] #pi-primary-navigation md-icon-button[data-selected=true] md-icon {
+  color: var(--md-sys-color-primary) !important;
+}
+#praktiki-sheet.side-sheet[data-state=open] #pi-primary-navigation md-icon-button[data-selected=true]::before {
+  content: "";
   display: block;
-  position: relative;
-  overflow: hidden;
-}
-#print-document-editor .page[data-page-number="1"] .body {
-  height: var(--page-body-height);
-}
-#print-document-editor .page[data-page-number="1"] .body .content {
-  translate: 0 calc(0 * var(--page-body-height));
-}
-#print-document-editor .page[data-page-number="1"] .body::after {
-  content: "Page 1";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page[data-page-number="2"] .body {
-  height: --page-body-max-height;
-}
-#print-document-editor .page[data-page-number="2"] .body .content {
-  translate: 0 calc(1 * var(--page-body-height));
-}
-#print-document-editor .page[data-page-number="2"] .body::after {
-  content: "Page 2";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page[data-page-number="3"] .body {
-  height: --page-body-max-height;
-}
-#print-document-editor .page[data-page-number="3"] .body .content {
-  translate: 0 calc(2 * var(--page-body-height) + 1 * var(--page-header-height));
-}
-#print-document-editor .page[data-page-number="3"] .body::after {
-  content: "Page 3";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page[data-page-number="4"] .body {
-  height: --page-body-max-height;
-}
-#print-document-editor .page[data-page-number="4"] .body .content {
-  translate: 0 calc(3 * var(--page-body-height) + 2 * var(--page-header-height));
-}
-#print-document-editor .page[data-page-number="4"] .body::after {
-  content: "Page 4";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page[data-page-number="5"] .body {
-  height: --page-body-max-height;
-}
-#print-document-editor .page[data-page-number="5"] .body .content {
-  translate: 0 calc(4 * var(--page-body-height) + 3 * var(--page-header-height));
-}
-#print-document-editor .page[data-page-number="5"] .body::after {
-  content: "Page 5";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page[data-page-number="6"] .body {
-  height: --page-body-max-height;
-}
-#print-document-editor .page[data-page-number="6"] .body .content {
-  translate: 0 calc(5 * var(--page-body-height) + 4 * var(--page-header-height));
-}
-#print-document-editor .page[data-page-number="6"] .body::after {
-  content: "Page 6";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page[data-page-number="7"] .body {
-  height: --page-body-max-height;
-}
-#print-document-editor .page[data-page-number="7"] .body .content {
-  translate: 0 calc(6 * var(--page-body-height) + 5 * var(--page-header-height));
-}
-#print-document-editor .page[data-page-number="7"] .body::after {
-  content: "Page 7";
-  position: absolute;
-  inset: auto 0 0 auto;
-  translate: 0 -100%;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.5px;
-}
-#print-document-editor .page .foot {
-  position: absolute;
-  inset: var(--page-body-max-height) 0 auto 0;
-  display: flex;
-  flex-direction: row;
-  align-items: start;
-  justify-items: start;
-}
-
-#praktiki-carbon #carbon-call {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-#praktiki-carbon #carbon-call md-icon-button {
-  margin-left: auto;
-}
-#praktiki-carbon #carbon-conversation {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-#praktiki-carbon #carbon-conversation .message {
-  position: relative;
-  max-width: 80%;
-  padding: 8px;
-  border-radius: 4px;
-  text-wrap: pretty;
-}
-#praktiki-carbon #carbon-conversation .message.sent {
-  align-self: end;
-  border-bottom-right-radius: 0;
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-}
-#praktiki-carbon #carbon-conversation .message.received {
-  align-self: start;
-  border-bottom-left-radius: 0;
-  background-color: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-}
-#praktiki-carbon #carbon-message {
-  display: flex;
-  flex-direction: row;
-  align-items: start;
-}
-#praktiki-carbon #carbon-message md-text-field {
-  flex: 1;
-}
-#praktiki-carbon #carbon-disconnected {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-#praktiki-carbon #carbon-connect {
-  display: grid;
-  position: relative;
-  grid-template-columns: 1fr 1fr;
-  padding: 8px;
-  gap: 24px;
-}
-#praktiki-carbon #carbon-connect md-linear-progress {
-  position: absolute;
-  inset: 0 0 auto 0;
-}
-#praktiki-carbon #carbon-connect .login-card {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  min-height: 425px;
-}
-#praktiki-carbon #carbon-connect .login-card .logo {
-  position: relative;
-  height: 132px;
-  width: 283.3333333333px;
-  overflow: hidden;
-  border: 1px solid var(--md-sys-color-on-background);
-  border-radius: 4px;
-}
-#praktiki-carbon #carbon-connect .login-card .logo img {
-  width: 100%;
-  position: absolute;
-  inset: 50% 0 0 50%;
-  translate: -50% -50%;
-}
-#praktiki-carbon #carbon-connect :last-child {
-  position: relative;
-}
-#praktiki-carbon #carbon-connect :last-child::before {
-  content: "join";
   position: absolute;
   inset: 50% auto auto 0;
-  translate: -100% -50%;
-  font-family: "Material Symbols";
-  font-size: 24px;
-  font-weight: 400;
-  font-variation-settings: "FILL" 0, "GRAD" 0;
+  translate: 0 -50%;
+  width: 4px;
+  height: 12px;
+  background-color: var(--md-sys-color-primary);
+  border-radius: 2px;
+}
+#praktiki-sheet.side-sheet[data-state=open] [id$=tool] {
+  grid-row: 2/3;
+  grid-column: 1/2;
+}
+#praktiki-sheet.side-sheet[data-state=open] [id$=tool]:not([data-state=active]) {
+  display: none;
+}
+#praktiki-sheet.side-sheet[data-state=closed] {
+  position: fixed;
+  box-sizing: border-box;
+  inset: var(--pi-sheet-top) 0 0 auto;
+  width: var(--pi-sheet-width);
+  padding: 16px 0 16px 0;
+  border-left: 1px solid var(--md-sys-color-on-background);
+  background-color: var(--md-sys-color-background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+#praktiki-sheet.side-sheet[data-state=closed] .sheet-headline {
+  display: none;
+}
+#praktiki-sheet.side-sheet[data-state=closed] .sheet-close {
+  aspect-ratio: 1/1;
+}
+#praktiki-sheet.side-sheet[data-state=closed] #pi-primary-navigation {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+#praktiki-sheet.side-sheet[data-state=closed] #pi-primary-navigation md-divider {
+  margin-top: auto;
+}
+#praktiki-sheet.side-sheet[data-state=closed] #pi-primary-navigation md-icon-button[data-selected=true] {
+  position: relative;
+}
+#praktiki-sheet.side-sheet[data-state=closed] #pi-primary-navigation md-icon-button[data-selected=true] md-icon {
+  color: var(--md-sys-color-primary) !important;
+}
+#praktiki-sheet.side-sheet[data-state=closed] #pi-primary-navigation md-icon-button[data-selected=true]::before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 50% auto auto 0;
+  translate: 0 -50%;
+  width: 4px;
+  height: 12px;
+  background-color: var(--md-sys-color-primary);
+  border-radius: 2px;
+}
+#praktiki-sheet.side-sheet[data-state=closed] [id$=tool] {
+  display: none;
 }
 
-#praktiki-visit {
+#pi-contact-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+#pi-contact-tool #contact-summary {
+  position: relative;
+  width: 100%;
+  min-height: 128px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px dashed var(--md-sys-color-on-background);
+}
+#pi-contact-tool #contact-summary:empty::after {
+  content: "drag and drop to select patient";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  white-space: nowrap;
+}
+#pi-contact-tool [id$=panel] {
+  flex: 1;
+}
+#pi-contact-tool #pi-print-generate {
+  width: 100%;
+  height: 100%;
   display: grid;
-  grid-template-areas: "shortcuts contact" "tablist contact" "tabpanels contact";
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
 }
-#praktiki-visit #visit-shortcuts {
-  grid-area: "shortcuts";
+#pi-contact-tool #pi-print-generate .selector {
+  grid-row: 1/2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 4px;
+  gap: 8px;
 }
-#praktiki-visit #visit-primary-tabs {
-  grid-area: "tablist";
+#pi-contact-tool #pi-print-generate .selector select {
+  flex: 1;
+  height: 100%;
+  margin: 0 0 0 0 !important;
 }
-#praktiki-visit [id$=panel] {
-  grid-area: "tabpanels";
+#pi-contact-tool #pi-print-generate [class^=option] {
+  display: none;
 }
-#praktiki-visit #praktiki-contact {
-  grid-area: "contact";
+#pi-contact-tool #pi-print-generate [class^=option][data-state=active] {
+  display: block;
+  grid-row: 2/3;
+  overflow: hidden;
+}
+#pi-contact-tool #pi-print-generate [class^=option] .description {
+  margin: 4px 0 4px 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+  text-wrap: pretty;
+}
+#pi-contact-tool #pi-print-generate .option-superbill .modifiers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto 1fr;
+}
+#pi-contact-tool #pi-print-generate .option-superbill .modifiers label {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+}
+#pi-contact-tool #pi-print-generate .option-superbill .modifiers label[for^=superbill] {
+  grid-row: 1/2;
+}
+#pi-contact-tool #pi-print-generate .option-superbill .modifiers input {
+  grid-row: 2/3;
+  box-sizing: border-box;
+  width: 100%;
+  height: 2rem;
+  margin-right: 4px;
+}
+#pi-contact-tool #pi-print-generate .option-superbill .modifiers md-chip-set {
+  grid-row: 4/5;
+  grid-column: 1/3;
+}
+#pi-contact-tool #pi-print-generate .print-blank {
+  grid-row: 3/4;
+}
+#pi-contact-tool #pi-carbon-chat {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-items: center;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  margin-top: 4px;
+  gap: 4px;
+  overflow: hidden;
+}
+#pi-contact-tool #pi-carbon-chat #carbon-status {
+  justify-self: left;
+  grid-row: 1/2;
+  grid-column: 1/2;
+}
+#pi-contact-tool #pi-carbon-chat #carbon-call {
+  justify-self: center;
+  grid-row: 1/2;
+  grid-column: 2/3;
+}
+#pi-contact-tool #pi-carbon-chat #carbon-conversation {
+  height: 100%;
+  grid-row: 2/3;
+  grid-column: 1/3;
+}
+#pi-contact-tool #pi-carbon-chat #carbon-message {
+  width: 100%;
+  min-height: 3lh;
+  resize: none;
+  grid-row: 3/4;
+  grid-column: 1/2;
+}
+#pi-contact-tool #pi-carbon-chat #carbon-send {
+  justify-self: center;
+  grid-rows: 3/4;
+  grid-column: 2/3;
 }

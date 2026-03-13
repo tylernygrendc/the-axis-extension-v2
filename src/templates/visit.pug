@@ -1,91 +1,91 @@
 extends bottom-sheet
 
-block content
-    #praktiki-visit
-        #visit-shortcuts
-            label#praktiki-visit-shortcuts-label Shortcuts
-            md-chip-set(aria-label="shortcuts", aria-labelledby="praktiki-visit-shortcuts-label")
-                md-assist-chip(label="Maintenance Care", aria-label="")
-                md-assist-chip(label="Autofill History", aria-label="")
-        md-tabs#visit-primary-tabs
-            md-primary-tab#visit-current-tab(aria-controls="visit-current-panel") Current
-            md-primary-tab#visit-previous-tab(aria-controls="visit-previous-panel") Previous
-            md-primary-tab#visit-exam-tab(aria-controls="visit-exam-panel") Exam
-        #visit-current-panel(role="tabpanel", aria-labeledby="visit-current-tab")
-            span
-                h2 Problem
-                md-outlined-button New Adverse Event
-                md-filled-tonal-button New Problem
-            table.problem-list
-                thead
-                    tr
-                        th Problem
-                        th Diagnosis
-                        th Plan
-                        th
-                            md-outlined-button Remove All
-                            md-filled-tonal-button Resolve All
-                tbody
-                    tr
-                        td.problem
-                        td: ul.diagnoses
-                        td: ul.plan
-                        td
-                            md-outlined-button Remove
-                            md-filled-tonal-button Resolve
-            span: h2 Visit
-            form
-                fieldset
-                    legend Reason for Visit
-                    md-radio(name="reason", value="new")
-                    label(for="") Care of new primary problem
-                    md-radio(name="reason", value="continue") 
-                    label(for="") Continued care of current problem
-                    md-radio(name="reason", value="reexam") 
-                    label(for="") Re-evaluation of current problem
-                    md-radio(name="reason", value="maintenance") 
-                    label(for="") Maintenance care
-                fieldset
-                    legend Response To Care
-                    md-radio(name="response", value="") 
-                    label(for="") Not tolerating
-                    md-radio(name="response", value="")
-                    label(for="") Slower than expected
-                    md-radio(name="response", value="")
-                    label(for="") As expected
-                    md-radio(name="response", value="") 
-                    label(for="") Faster than expected
-                    md-radio(name="response", value="") 
-                    label(for="") Problem resolved
-                fieldset
-                    legend Plan Modifications
-                    label
-                        md-check-box(name="response", value="")
-                        | Discontinue care
-                    label
-                        md-check-box(name="response", value="")
-                        | Refer for alternative care
-                    label
-                        md-check-box(name="response", value="") 
-                        | Recommend complementary care
-                    label
-                        md-check-box(name="response", value="") 
-                        | Provide at-home care instructions
-                    label
-                        md-check-box(name="response", value="")
-                        | Increase treatment frequency
-                    label
-                        md-check-box(name="response", value="")
-                        | Extend the current care plan
-                    label
-                        md-check-box(name="response", value="")
-                        | Continue the current care plan
-                    label
-                        md-check-box(name="response", value="")
-                        | Decrease treatment frequency
-                    label
-                        md-check-box(name="response", value="")
-                        | Begin maintenance care
-        #visit-previous-panel(role="tabpanel", aria-labeledby="visit-previous-tab")
-        #visit-exam-panel(role="tabpanel", aria-labeledby="visit-exam-tab")
-    include contact
+block main
+    #visit-shortcuts
+        label#praktiki-visit-shortcuts-label Shortcuts
+        md-chip-set(aria-label="shortcuts", aria-labelledby="praktiki-visit-shortcuts-label")
+            md-assist-chip(label="Maintenance Care", aria-label="")
+            md-assist-chip(label="Autofill History", aria-label="")
+    md-tabs#visit-primary-tabs
+        md-primary-tab#visit-current-tab(aria-controls="visit-current-panel") Current
+        md-primary-tab#visit-previous-tab(aria-controls="visit-previous-panel") Previous
+        md-primary-tab#visit-exam-tab(aria-controls="visit-exam-panel") Exam
+    #visit-current-panel(role="tabpanel", aria-labeledby="visit-current-tab")
+        span
+            h2 Problem
+            md-outlined-button New Adverse Event
+            md-filled-tonal-button New Problem
+        table.problem-list
+            thead
+                tr
+                    th Problem
+                    th Diagnosis
+                    th Plan
+                    th
+                        md-outlined-button Remove All
+                        md-filled-tonal-button Resolve All
+            tbody
+                tr
+                    td.problem
+                    td: ul.diagnoses
+                    td: ul.plan
+                    td
+                        md-outlined-button Remove
+                        md-filled-tonal-button Resolve
+        span: h2 Visit
+        form
+            fieldset
+                legend Reason for Visit
+                md-radio(name="reason", value="new")
+                label(for="") Care of new primary problem
+                md-radio(name="reason", value="continue") 
+                label(for="") Continued care of current problem
+                md-radio(name="reason", value="reexam") 
+                label(for="") Re-evaluation of current problem
+                md-radio(name="reason", value="maintenance") 
+                label(for="") Maintenance care
+            fieldset
+                legend Response To Care
+                md-radio(name="response", value="") 
+                label(for="") Not tolerating
+                md-radio(name="response", value="")
+                label(for="") Slower than expected
+                md-radio(name="response", value="")
+                label(for="") As expected
+                md-radio(name="response", value="") 
+                label(for="") Faster than expected
+                md-radio(name="response", value="") 
+                label(for="") Problem resolved
+            fieldset
+                legend Plan Modifications
+                label
+                    md-check-box(name="response", value="")
+                    | Discontinue care
+                label
+                    md-check-box(name="response", value="")
+                    | Refer for alternative care
+                label
+                    md-check-box(name="response", value="") 
+                    | Recommend complementary care
+                label
+                    md-check-box(name="response", value="") 
+                    | Provide at-home care instructions
+                label
+                    md-check-box(name="response", value="")
+                    | Increase treatment frequency
+                label
+                    md-check-box(name="response", value="")
+                    | Extend the current care plan
+                label
+                    md-check-box(name="response", value="")
+                    | Continue the current care plan
+                label
+                    md-check-box(name="response", value="")
+                    | Decrease treatment frequency
+                label
+                    md-check-box(name="response", value="")
+                    | Begin maintenance care
+    #visit-previous-panel(role="tabpanel", aria-labeledby="visit-previous-tab")
+    #visit-exam-panel(role="tabpanel", aria-labeledby="visit-exam-tab")
+block aside
+    include _contact

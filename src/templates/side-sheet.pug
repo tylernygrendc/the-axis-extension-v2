@@ -1,7 +1,21 @@
-#praktiki-side-sheet(data-state="open")
-    header
-        h2.headline 
-        md-icon-button.state-toggle(aria-label="collapse side sheet", toggle)
-            md-icon right_panel_close
-            md-icon(slot="selected") right_panel_open
-    block content
+.sheet-headline Praktiki for AXIS
+md-icon-button.sheet-close(aria-label="toggle side sheet")
+    md-icon close
+nav#pi-primary-navigation
+    md-icon-button(label="patient", href="#pi-contact-tool", data-selected="true")
+        md-icon account_circle
+    md-icon-button(label="bookings", href="#pi-schedule-tool")
+        md-icon calendar_today
+    md-icon-button(label="reports", href="#pi-reports-tool")
+        md-icon analytics
+    md-divider
+    md-icon-button(label="help", href="", target="_blank")
+        md-icon help
+    md-icon-button(label="settings", href="", target="_blank")
+        md-icon settings
+#pi-contact-tool(data-state="active")
+    include _contact
+#pi-schedule-tool
+    md-list
+#pi-reports-tool
+    

@@ -1,0 +1,13 @@
+#contact-summary
+md-tabs#contact-tabs
+    md-secondary-tab#print-tab(aria-controls="print-panel")
+        md-icon(slot="icon") print
+        | Print
+    md-secondary-tab#carbon-tab(aria-controls="carbon-panel")
+        md-icon(slot="icon") chat
+        | Carbon
+#print-panel(role="tabpanel", aria-labeledby="print-tab")
+    include _print
+#carbon-panel(role="tabpanel", aria-labeledby="carbon-tab", hidden)
+    include _carbon
+        

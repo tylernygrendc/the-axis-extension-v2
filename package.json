@@ -19,7 +19,7 @@
   "dependencies": {
     "@material/web": "^2.4.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@types/pug": "^2.0.10",
     "@types/ttf2woff2": "^2.0.2",
     "chalk": "^5.3.0",
@@ -30,6 +30,6 @@
     "qrcode": "^1.5.4",
     "rollup": "^4.24.0",
     "sass": "^1.80.3",
-    "ttf2woff2": "^5.0.0"
+    "ttf2woff2": "^8.0.1"
   }
 }
