@@ -37,28 +37,55 @@ md-outlined-select {
   }
 }
 
-// material check list implementation
-
-.md-check-list {
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  label {
-    flex: 1;
-  }
-}
-
 // material radio list implementation
 
-.md-radio-list {
+.md-check-list {
   display: grid;
-  grid-template-columns: auto 1fr;
+  align-items: center;
+
   md-radio,
-  md-check-box {
-    grid-column: 1 / 2;
+  md-checkbox {
+    align-self: center;
+    justify-self: center;
   }
+
   label {
-    grid-column: 2 / 3;
+    width: 100%;
+    height: 2lh;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: 0;
+    gap: 4px;
+  }
+
+  &.trailing-check-box {
+    width: 100%;
+    grid-template-columns: 1fr auto;
+
+    md-radio,
+    md-checkbox {
+      grid-column: 2 / 3;
+      margin-left: 8px;
+    }
+    label {
+      grid-column: 1 / 2;
+    }
+  }
+  &:not(.trailing-check-box) {
+    width: auto;
+    grid-template-columns: auto 1fr;
+
+    md-radio,
+    md-checkbox {
+      grid-column: 1 / 2;
+      margin-right: 8px;
+    }
+    label {
+      grid-column: 2 / 3;
+    }
   }
 }
 
@@ -76,6 +103,27 @@ md-outlined-select {
   }
   md-icon-button {
     order: 3;
+  }
+}
+
+// approximation of md textfield
+// (because md-select change event is wonky)
+
+.textfield {
+  display: inline-block;
+  position: relative;
+  border: 1px solid var(--md-sys-color-on-background);
+  &[data-supporting-text] {
+    &::after {
+      content: attr(data-supporting-text);
+      display: block;
+      position: absolute;
+      top: 100%;
+      left: 8px;
+    }
+  }
+  &:focus {
+    outline: 2px solid var(--md-sys-color-primary);
   }
 }
 
@@ -137,6 +185,16 @@ body:has(#praktiki-sheet) #content {
     right: var(--pi-sheet-width);
   }
 }
+
+// override sugarcrm input appearance
+#praktiki-sheet input {
+  height: 1.5lh;
+  @extend .textfield;
+  &[type="number"] {
+    width: 48px;
+  }
+}
+
 // back office modifications
 
 body:has(#praktiki-sheet) #app main {
@@ -344,7 +402,6 @@ body:has(#praktiki-sheet) #app main {
       &[data-state="active"] {
         display: block;
         grid-row: 2 / 3;
-        overflow: hidden;
       }
       .description {
         margin: 4px 0 4px 0;
@@ -374,6 +431,21 @@ body:has(#praktiki-sheet) #app main {
       md-chip-set {
         grid-row: 4 / 5;
         grid-column: 1 / 3;
+      }
+    }
+    .option-excuse .modifiers {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      fieldset {
+        legend {
+          @include type.set-type("label-medium");
+          // undo axis styles
+          border: 0;
+          margin: 0;
+          line-height: 1lh;
+          color: var(--md-sys-color-on-background);
+        }
       }
     }
     .print-blank {
@@ -416,7 +488,7 @@ body:has(#praktiki-sheet) #app main {
     }
     #carbon-send {
       justify-self: center;
-      grid-rows: 3 / 4;
+      grid-row: 3 / 4;
       grid-column: 2 / 3;
     }
 

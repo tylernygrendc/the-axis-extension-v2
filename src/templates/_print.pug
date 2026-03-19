@@ -29,21 +29,26 @@ form#pi-print-generate
             summary What is this?
             p An excuse slip validates the patient's absence from work or school. It may include activity modifications, which can be edited during preview.
         .modifiers
-            fieldset.md-radio-list
+            fieldset.md-check-list
                 legend Date of Service
                 md-radio#excuse-today(name="excuse-date", value="today")
                 label(for="excuse-today") Today's visit
             fieldset.md-check-list
-                legend Recommendation
-                label(for="limit-lifting")
-                    md-check-box#limit-lifting(name="excuse-recommendation", value="lifting")
-                    | Limit lifting greater than 15 pounds.
-                label(for="limit-standing")
-                    md-check-box#limit-standing(name="excuse-recommendation", value="standing")
-                    | Limit standing longer than 60 minutes.
-                label(for="limit-sitting")
-                    md-radio#excuse-today(name="excuse-recommendation", value="sitting")
-                    | Limit sitting longer than 60 minutes.
+                legend Activity Modification
+                md-checkbox#limit-lifting(name="modification", value="lifting")
+                label(for="limit-lifting") Lift less than <input type="number" value="15"> pounds.
+                md-checkbox#limit-standing(name="modification", value="standing")
+                label(for="limit-standing") Stand less than <input type="number" value="60"> minutes.
+                md-checkbox#limit-sitting(name="modification", value="sitting")
+                label(for="limit-sitting") Sit less than <input type="number" value="60"> minutes.
+            fieldset.md-check-list
+                legend Return to Activity
+                md-radio#resume-today(name="return-to-activity", value="today")
+                label(for="resume-today") Today
+                md-radio#resume-tomorrow(name="return-to-activity", value="tomorrow")
+                label(for="resume-tomorrow") Tomorrow
+                md-radio#resume-days(name="return-to-activity", value="three-days")
+                label(for="resume-days") In <input type="number" value="3"> days
     md-outlined-button.print-blank
         md-icon(slot="icon") add
         | Start a Blank Document

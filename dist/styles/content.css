@@ -268,23 +268,47 @@ md-outlined-select {
 }
 
 .md-check-list {
-  display: flex;
-  flex-direction: column;
-  align-items: left;
+  display: grid;
+  align-items: center;
+}
+.md-check-list md-radio,
+.md-check-list md-checkbox {
+  align-self: center;
+  justify-self: center;
 }
 .md-check-list label {
-  flex: 1;
+  width: 100%;
+  height: 2lh;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  margin: 0;
+  gap: 4px;
 }
-
-.md-radio-list {
-  display: grid;
-  grid-template-columns: auto 1fr;
+.md-check-list.trailing-check-box {
+  width: 100%;
+  grid-template-columns: 1fr auto;
 }
-.md-radio-list md-radio,
-.md-radio-list md-check-box {
+.md-check-list.trailing-check-box md-radio,
+.md-check-list.trailing-check-box md-checkbox {
+  grid-column: 2/3;
+  margin-left: 8px;
+}
+.md-check-list.trailing-check-box label {
   grid-column: 1/2;
 }
-.md-radio-list label {
+.md-check-list:not(.trailing-check-box) {
+  width: auto;
+  grid-template-columns: auto 1fr;
+}
+.md-check-list:not(.trailing-check-box) md-radio,
+.md-check-list:not(.trailing-check-box) md-checkbox {
+  grid-column: 1/2;
+  margin-right: 8px;
+}
+.md-check-list:not(.trailing-check-box) label {
   grid-column: 2/3;
 }
 
@@ -304,6 +328,22 @@ md-outlined-select {
 }
 .md-snack-bar md-icon-button {
   order: 3;
+}
+
+.textfield, #praktiki-sheet input {
+  display: inline-block;
+  position: relative;
+  border: 1px solid var(--md-sys-color-on-background);
+}
+.textfield[data-supporting-text]::after, #praktiki-sheet input[data-supporting-text]::after {
+  content: attr(data-supporting-text);
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 8px;
+}
+.textfield:focus, #praktiki-sheet input:focus {
+  outline: 2px solid var(--md-sys-color-primary);
 }
 
 body:has(#sugarcrm) {
@@ -343,6 +383,13 @@ body:has(#praktiki-sheet) #content .headerpane {
 }
 body:has(#praktiki-sheet) #content div:has(> .dfab-icon) {
   right: var(--pi-sheet-width);
+}
+
+#praktiki-sheet input {
+  height: 1.5lh;
+}
+#praktiki-sheet input[type=number] {
+  width: 48px;
 }
 
 body:has(#praktiki-sheet) #app main:has(#patientName) {
@@ -528,7 +575,6 @@ body:has(#praktiki-sheet) #app main .table-scrollable {
 #pi-contact-tool #pi-print-generate [class^=option][data-state=active] {
   display: block;
   grid-row: 2/3;
-  overflow: hidden;
 }
 #pi-contact-tool #pi-print-generate [class^=option] .description {
   margin: 4px 0 4px 0;
@@ -563,6 +609,21 @@ body:has(#praktiki-sheet) #app main .table-scrollable {
 #pi-contact-tool #pi-print-generate .option-superbill .modifiers md-chip-set {
   grid-row: 4/5;
   grid-column: 1/3;
+}
+#pi-contact-tool #pi-print-generate .option-excuse .modifiers {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+#pi-contact-tool #pi-print-generate .option-excuse .modifiers fieldset legend {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+  border: 0;
+  margin: 0;
+  line-height: 1lh;
+  color: var(--md-sys-color-on-background);
 }
 #pi-contact-tool #pi-print-generate .print-blank {
   grid-row: 3/4;
@@ -602,6 +663,6 @@ body:has(#praktiki-sheet) #app main .table-scrollable {
 }
 #pi-contact-tool #pi-carbon-chat #carbon-send {
   justify-self: center;
-  grid-rows: 3/4;
+  grid-row: 3/4;
   grid-column: 2/3;
 }
