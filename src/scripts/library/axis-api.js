@@ -104,6 +104,20 @@ const frontOfficeAPI = {
       credentials: "include",
     };
   },
+  getClinicById: (id) => {
+    return {
+      category: "user",
+      returnDescription: "an object matching the specified clinic",
+      usage: "get a clinic's details",
+      method: "GET",
+      timeout: 180000,
+      url: `https://axis.thejoint.com/rest/v11_24/TJ_Clinics/${id}`,
+      credentials: "include",
+      queryOptions: {
+        view: ["record", "preview", "list"],
+      },
+    };
+  },
   getInClinicUsers: () => {
     return {
       category: "clinic",
