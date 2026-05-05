@@ -5,14 +5,27 @@ import { oneLine } from "../_string.mjs";
 export class Patient {
   constructor(id = "") {
     this.id = id;
-    this.visits = [];
+    this.visitList = [];
+    this.diagnosisList = [];
     this.problemList = [];
+    this.treatmentPlan = {};
+  }
+  get nextVisit() {
+    const visit = new Date(this.previousVisit.date_entered);
+    return new Date(
+      Math.min(
+        visit.setDate(
+          visit.getDate() + Math.ceil((this.treatmentPlan.totalWeeks * 7) / this.treatmentPlan.totalVisits),
+        ),
+        this.treatmentPlan.end,
+      ),
+    );
   }
   get previousExam() {
-    return this.visits.find((visit) => visit.type != 1);
+    return this.visitList.find((visit) => visit.type != 1);
   }
   get previousVisit() {
-    return this.visits[0];
+    return this.visitList[0];
   }
   get isMilitary() {
     return this.is_military;
@@ -34,10 +47,7 @@ export class Patient {
   }
   get hasBirthday() {
     const dob = new Date(this.birthdate).setFullYear(new Date().getFullYear());
-    const daysToBirthday = Math.ceil(
-      Math.abs(new Date(dob).getTime() - new Date().getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
+    const daysToBirthday = Math.ceil(Math.abs(new Date(dob).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     return daysToBirthday <= 7 ? true : false;
   }
   get hasHSA() {
@@ -118,7 +128,7 @@ export class Patient {
         if (res.ok) {
           res.json().then((json) => {
             Object.assign(this, json[0].contents.records);
-            this.visits = json[1].contents.records;
+            this.visitList = json[1].contents.records;
             resolve(this);
           });
         } else {
@@ -260,14 +270,7 @@ export class Patient {
           }).then((res) => {
             if (res.ok) {
               res.json().then((json) => {
-                [
-                  "purchases",
-                  "documents",
-                  "tasks",
-                  "notes",
-                  "requests",
-                  "trackers",
-                ].forEach((field) => {
+                ["purchases", "documents", "tasks", "notes", "requests", "trackers"].forEach((field) => {
                   this[field] = json.contents.records; // an array of objects
                 });
               });
@@ -295,42 +298,34 @@ export class Patient {
                   pdf.text = pdf.text.trim().replaceAll(/[\r\n]/g, "");
                   // get problems from pdf soap
                   array = pdf.text
-                    .split(
-                      /The patient presents with the following complaint\(s\):/g,
-                    )[1]
+                    .split(/The patient presents with the following complaint\(s\):/g)[1]
                     .split(/\sof waking hours/g);
                   for (let i = 0; i < array.length - 1; ++i) {
-                    const [name, severity, frequency] = array[i].split(
-                      /\srating\s|\sout of 10 and occurs\s/g,
-                    );
-                    this.problems.push({
+                    const [name, severity, frequency] = array[i].split(/\srating\s|\sout of 10 and occurs\s/g);
+                    this.problemList.push({
                       name: name,
                       severity: `${severity} out of 10`,
                       frequency: `${frequency} of waking hours`,
                     });
                   }
                   // get diagnoses from pdf soap
-                  array = pdf.text
-                    .split(/Diagnosis codes:|Following the visit|Plan/g)[1]
-                    .split(/([A-Z][0-9]{2})/g);
+                  array = pdf.text.split(/Diagnosis codes:|Following the visit|Plan/g)[1].split(/([A-Z][0-9]{2})/g);
                   for (let i = 1; i < array.length; ++i) {
                     const str = array[i] + array[++i];
                     const [code, description] = str.split(/\s\-\s/g);
-                    this.diagnoses.push({
+                    this.diagnosisList.push({
                       code: code,
                       description: description,
                     });
                   }
                   // get treatment plan from pdf soap
                   array = pdf.text
-                    .split(
-                      /Chiropractic adjustments were performed on the following levels:/g,
-                    )[1]
+                    .split(/Chiropractic adjustments were performed on the following levels:/g)[1]
                     .split(
                       /Treatment plan:|Recommended re-evaluation date:|Treatment Items:VisitsPer WeekBy DC|Chiropractor:/g,
                     );
                   this.treatmentPlan.description = array[1];
-                  this.treatmentPlan.end = array[2];
+                  this.treatmentPlan.end = new Date(array[2]);
                   this.treatmentPlan.breakdown = array[3]
                     .split(/[0-9]/g)
                     .reduce((acc, cv, i) => {
@@ -343,7 +338,14 @@ export class Patient {
                           frequency: cv,
                           duration: arr[i + 1],
                         });
-                    });
+                    }, []);
+                  array = this.treatmentPlan.description.split(
+                    /A treatment plan of [0-9]* x's for a total of\s|\sweeks was set on\s|\sby\s|, DC, for an estimated\s|\svisits\./g,
+                  );
+                  this.treatmentPlan.totalWeeks = array[0];
+                  this.treatmentPlan.start = new Date(array[1]);
+                  this.treatmentPlan.provider = array[2];
+                  this.treatmentPlan.totalVisits = array[3];
                   resolve(true);
                 });
               });

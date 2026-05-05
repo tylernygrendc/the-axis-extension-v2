@@ -17,14 +17,15 @@
     "ship": "npm run compress"
   },
   "dependencies": {
-    "@material/web": "^2.4.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@types/pug": "^2.0.10",
     "@types/ttf2woff2": "^2.0.2",
     "chalk": "^5.3.0",
+    "dompurify": "^3.3.3",
     "dotenv": "^17.2.1",
     "html2pdf": "^0.0.11",
+    "html2pdf.js": "^0.14.0",
     "pdf-parse": "^2.4.5",
     "pug": "^3.0.3",
     "qrcode": "^1.5.4",

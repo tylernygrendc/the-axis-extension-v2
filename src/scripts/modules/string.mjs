@@ -5,12 +5,13 @@ export function camelCase(string = "") {
       : (acc += `${cv.charAt(0).toUpperCase()}${cv.slice(1)}`);
   }, "");
 }
-export function capitalize(string = "") {
-  return string.split(" ").reduce((acc, cv, i, initialArray) => {
-    return i < initialArray.length - 1
-      ? (acc += `${cv.charAt(0).toUpperCase() + cv.slice(1)} `)
-      : `${cv.charAt(0).toUpperCase() + cv.slice(1)}`;
-  }, "");
+export function capitalize(string = "", firstOnly = true) {
+  return string
+    .split(firstOnly ? /(\.\s+)|(?=^[A-Z])/gi : /(\s+)/g)
+    .reduce((acc, cv) => {
+      acc += cv.charAt(0).toUpperCase() + cv.slice(1);
+      return acc;
+    }, "");
 }
 export function kebabCase(string) {
   return string.split(/(?=[A-Z])|_|\s/g).reduce((acc, cv, i, initialArray) => {

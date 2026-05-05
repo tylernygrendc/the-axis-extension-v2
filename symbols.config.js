@@ -12,10 +12,13 @@ const appearance = {
     "account_circle",
     "add",
     "analytics",
+    "arrow_upload_progress",
+    "arrow_upload_ready",
+    "browser_updated",
     "bug_report",
-    "calendar_today",
     "call",
     "call_end",
+    "cancel",
     "chat",
     "check_circle",
     "close",
@@ -27,41 +30,48 @@ const appearance = {
     "cloud_off",
     "cloud_upload",
     "delete",
-    "delete_sweep",
     "download",
     "edit",
-    "edit_square",
     "error",
-    "exercise",
+    "experiment",
     "help",
     "home",
+    "info",
     "join",
     "keyboard_arrow_down",
     "keyboard_arrow_left",
     "keyboard_arrow_right",
     "keyboard_arrow_up",
-    "lab_panel",
-    "line_end_circle",
     "link",
     "lock",
     "lock_open",
-    "loyalty",
-    "medical_services",
+    "login",
+    "logout",
     "menu",
     "menu_open",
-    "nutrition",
+    "offline_pin",
     "open_in_new",
     "pending",
     "print",
-    "radiology",
+    "print_disabled",
+    "publish",
     "report",
     "save",
+    "schedule",
     "search",
     "send",
     "settings",
     "share",
-    "spa",
+    "sync",
+    "sync_disabled",
+    "sync_problem",
+    "system_update_alt",
+    "task_alt",
     "today",
+    "troubleshoot",
+    "upload",
+    "update",
+    "warning",
   ].sort(),
   output = "material-symbols",
   woff2 = true;
@@ -76,22 +86,11 @@ try {
   res = await res.arrayBuffer();
   writeFileSync(`./dist/fonts/${output}.ttf`, Buffer.from(res));
   if (woff2) {
-    writeFileSync(
-      `./dist/fonts/${output}.woff2`,
-      ttf2woff2(readFileSync(`./dist/fonts/${output}.ttf`)),
-    );
+    writeFileSync(`./dist/fonts/${output}.woff2`, ttf2woff2(readFileSync(`./dist/fonts/${output}.ttf`)));
     unlinkSync(`./dist/fonts/${output}.ttf`);
   }
-  console.log(
-    chalk.greenBright(
-      `\n${output}.${woff2 ? "woff2" : "ttf"} has been successfully updated!\n`,
-    ),
-  );
+  console.log(chalk.greenBright(`\n${output}.${woff2 ? "woff2" : "ttf"} has been successfully updated!\n`));
 } catch (error) {
   console.log(error);
-  console.log(
-    chalk.redBright(
-      `\n${output}.${woff2 ? "woff2" : "ttf"} could not updated.\n`,
-    ),
-  );
+  console.log(chalk.redBright(`\n${output}.${woff2 ? "woff2" : "ttf"} could not updated.\n`));
 }

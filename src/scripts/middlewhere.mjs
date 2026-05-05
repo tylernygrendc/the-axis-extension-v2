@@ -14,15 +14,11 @@ export function frontOfficeFetch(resource = "", options = {}) {
         headers: new Headers(res.headers),
         url: res.url,
         json: async () => {
-          const text = res.isBinary
-            ? new TextDecoder().decode(new Uint8Array(res.body))
-            : res.body;
+          const text = res.isBinary ? new TextDecoder().decode(new Uint8Array(res.body)) : res.body;
           return JSON.parse(text);
         },
         text: async () => {
-          res.isBinary
-            ? new TextDecoder().decode(new Uint8Array(res.body))
-            : res.body;
+          res.isBinary ? new TextDecoder().decode(new Uint8Array(res.body)) : res.body;
         },
         arrayBuffer: async () => {
           if (res.isBinary) return new Uint8Array(res.body).buffer;
@@ -32,20 +28,19 @@ export function frontOfficeFetch(resource = "", options = {}) {
     });
 }
 
+export function frontOfficeBulkFetch(requests, options) {}
+
 export function frontOfficeRefresh() {
   contentStorage.get("refreshToken", "sync").then((record) => {
     if (record.ok)
-      frontOfficeFetch(
-        `https://axis.thejoint.com/rest/v11_24/oauth2/token?platform=base`,
-        {
-          method: "POST",
-          body: {
-            grant_type: "refresh_token",
-            refresh_token: record.results.refreshToken,
-            refresh: true,
-          },
+      frontOfficeFetch(`https://axis.thejoint.com/rest/v11_24/oauth2/token`, {
+        method: "POST",
+        body: {
+          grant_type: "refresh_token",
+          refresh_token: record.results.refreshToken,
+          refresh: true,
         },
-      ).then((res) => {
+      }).then((res) => {
         if (res.ok) {
           // update tokens
           res.json().then((json) => {
@@ -85,18 +80,9 @@ export function frontOfficeRefresh() {
           // avoid conflict with open front office
           if (window.location.hostname === "axis.thejoint.com") {
             // store tokens locally
-            localStorage.setItem(
-              "prod:SugarCRM:AuthAccessToken",
-              res.access_token,
-            );
-            localStorage.setItem(
-              "prod:SugarCRM:AuthRefreshToken",
-              res.refresh_token,
-            );
-            localStorage.setItem(
-              "prod:SugarCRM:DownloadToken",
-              res.download_token,
-            );
+            localStorage.setItem("prod:SugarCRM:AuthAccessToken", res.access_token);
+            localStorage.setItem("prod:SugarCRM:AuthRefreshToken", res.refresh_token);
+            localStorage.setItem("prod:SugarCRM:DownloadToken", res.download_token);
           }
         } else {
           throw new Error(res.statusText);

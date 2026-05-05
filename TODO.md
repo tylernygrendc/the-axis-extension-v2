@@ -1,0 +1,8 @@
+- [ ] Update `manifest.json` host permissions
+- [ ] Add `static` method `get()` to `User` class
+- [ ] Add `static` method `fromId()` to `Patient` class
+- [ ] Add `encrypt()` to `utilities.mjs`
+- [ ] Add `onAuthStateChange()` to `App` class
+- [ ] Add `App.injectUI()` and remove "connect" methods
+- [ ] Expand `contentStorage` methods
+- [ ] Rebuild UI structure and styles

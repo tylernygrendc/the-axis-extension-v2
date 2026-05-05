@@ -1,4 +1,4 @@
-import { User } from "./library/axis-user.js";
+import { App } from "./library/axis-app.js";
 import { el } from "./_element.mjs";
 
 // inject script dependencies
@@ -16,12 +16,12 @@ document.body.append(
   }),
 );
 
-const user = new User();
+const app = new App();
 
 // show the correct ui
-user.currentApp.connectSheet();
+app.connectSheet();
 // and make sure ui updates with navigation (for front office)
 window.addEventListener("popstate", (e) => {
-  user.currentApp.disconnect();
-  user.currentApp.connectSheet();
+  app.disconnect();
+  app.connectSheet();
 });

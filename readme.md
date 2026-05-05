@@ -1,159 +1,49 @@
-# Praktiki for AXIS
+# The AXIS Extension V2
 
-[The AXIS Extension](https://www.github.com/tylernygrendc/the-axis-extension) introduced new functionality to [The Joint's](https://www.thejoint.com/our-story) combined health record and customer management system, called AXIS. The scope of that project, however, was limited to front-of-house automation. Praktiki for AXIS (Praktiki) is a revitalized effort at reshaping medical documentation within the The Joint's clinic system. It is intended to replace The AXIS Extension.
+[The AXIS Extension](https://www.github.com/tylernygrendc/the-axis-extension) introduced new functionality to [The Joint's](https://www.thejoint.com/our-story) health record and customer management systems, collectively called AXIS. The scope of that project, however, was limited to front-of-house automation. This new project (V2) is a revitalized effort at reshaping medical documentation within the The Joint's clinic system. It is intended to replace the AXIS Extension.
 
-Like it's predecessor, Praktiki is a browser extension compatible with Chrome, Edge, Opera, Brave, and Vivaldi ^[A fork of this project will be available for use with Firefox]. It is built with pure JavaScript and utilizes [Rollup](https://rollupjs.org/) to compile scripts to `dist/scripts`. Stylesheets are written with [SCSS](https://sass-lang.com/) and complied to `dist/styles`. HTML is written with [Pug](https://pugjs.org/api/getting-started.html) and compiled to `dist/markup`. It is built with [Material Web](https://material-web.dev) and adheres to the [Material Design System](https://m3.material.io/).
+## How it works
 
-## Architecture
+AXIS consists of two discrete web applications: _back office_ and _front office_. These are assigned the subdomains _backoffice_ and _axis_, respectively. Each provides several resources. Back office is primarily concerned with medical documentation and consists of six resources: "Waiting Queue", "Pending Notes", "Completed", "Patient Search", "Task Management", and "Cert-Create" (used to access individual medical records, pending and completed). Front office handles customer management and point-of-sale, which includes many more resources. Of these, V2 is only concerned with "Home", "Contact", and "Tasks". It provides a uniform interface that automates clicks and requests on behalf of the AXIS user, and serves as a bridge connecting these systems and resources. The Joint also utilizes a third-party communication and scheduling platform called Carbon. V2 exploits a handful of its APIs to integrate patient messaging and appointment readouts.
 
-AXIS consists of two discrete web applications: _back office_ and _front office_. These are assigned the subdomains _backoffice_ and _axis_, respectively. Praktiki provides a uniform interface that automates clicks and requests on behalf of the AXIS user. It also serves as a bridge between to the two systems.
+## How it's built
 
-Praktiki's content script creates an `User` instance at `document_idle`. This is a JavaScript class that represents the current signed-in user, their current clinic, and it contains an `App` instance that represents the current webpage and extension UI.
+Like it's predecessor, V2 is a browser extension compatible with Chrome and Chromium-based browsers. It is built with pure JavaScript and utilizes [Rollup](https://rollupjs.org/) (with the Terser plugin) to compile scripts to `dist/scripts`. There are two main output scripts: `app-content.js` and `app-background.js`. The former is injected into the webpage at `document_idle` and includes _almost_ all client-side functionality. The exception is `pdf.js`, a third output script encapsulating [pdf-parse](https://www.npmjs.com/package/pdf-parse). This is injected into the webpage as a `script` element (`type=module`) by `app-content.js`. Notably, `app-content.js` will execute in any tab matching the allowed urls specified by `dist/manifest.json`. This may lead to concurrent execution in multiple contexts (tabs). `app-background.js`, on the other hand, is a proxy server (service worker) between contexts and the browser. It is not duplicated. `host_permissions` are explicitly set to allow `app-background.js` to interface with AXIS and Carbon APIs. Except for the creation of medical records, all API actions are performed via `app-background.js`.
 
-### Printing Documents
+Most of V2's functionality consists of displaying, manipulating, or connecting data representing the user and the patient (synonymous with "contact"). These are represented by the `User` and `Patient` classes. A third `App` class represents the open axis resource and the extension instance state. `App` is instantiated immediately and ready-to-use, while `User` and `Patient` require `await` for their respective `static` `get()` and `fromId()` methods.
 
-`App.printPreview(doc<Element>, options<obj>)` creates a `<praktiki-print-preview>` web component, an extension of the `HTMLIFrameElement`, to which an `Element` is appended. User `click` on any `<td>`, `<p>`, `<h[1-6]>`, or `<span>` will allow for direct edit of any preview text, which may be optionally disabled by passing `allowEdit: false` to `options`. 
+`App.onAuthStateChange()` is called by `app-content.js` at `document_idle` and listens for login (if the user is not yet logged in). Because username and password is shared between front office and back office, and because their security structure is similar, maintaining authentication is relatively simple. Login to back office triggers a simultaneous login to front office. The resultant authentication keys are stored via the chrome.storage API, and the login process is then continued normally.
 
-The `<praktiki-print-preview>` web component is contained within an `<md-dialog>` with options to "print", "save", and "save and print" by default. The dialog can also be closed and preview removed without initiating an action. Passing `{save: false}` limits the options to just "print" by disabling the corresponding buttons. Passing options `{save: false, allowEdit: false}` bypasses the `<md-dialog>` altogether, calling `PraktikiPrintPreview.print()` immediately and removing `<praktiki-print-preview>` from the DOM `afterprint`.
+Login to Carbon must be completed separately with independent login credentials. At the first Carbon sign in, the user is prompted for both Carbon and AXIS login details via `form` element. Upon submission, the Carbon credentials will be encrypted with `crypto.subtle.encrypt` using a key derived from the AXIS password. The resultant ciphertext (and the corresponding initialization vector and salt) are stored via `chrome.storage.sync`. On subsequent logins, AXIS credentials (which are permitted to `autocomplete`) are used to decipher the credentials and login via `fetch` at `app-background.js`. Authentication keys obtained via login at `app-background.js` are also stored via the chrome.storage API and used for subsequent Carbon requests/actions.
 
-"Print" calls `MDPrintPreview.print()`, triggering the browser's native print preview and removing `<praktiki-print-preview>` from the DOM `afterprint`. "Save and print" calls `App.uploadToDocuments()` `afterprint` and modifies the DOM to show _in progress_ and _complete_ states before removing `<praktiki-print-preview>`.
+## How it looks
 
-### Saving Documents
+Visually, V2 is a fixed, dark grey flex row, 48px in height, spanning the bottom of the AXIS webpages. Padding is added to `#app` (back office) and `#content` (front office)-- among other adjustments-- to avoid layout collision. For visual consistency and greater efficiency/simplicity, V2 uses AXIS styles where possible-- at least where they overlap between systems. Custom stylesheets are written with [SCSS](https://sass-lang.com/) and precompiled to `dist/styles`. Action items appear left to right within the flex box, with features, shortcuts, and system options clearly separated. Actions are added/hidden based on resource and user role (WC or DC). Most of these actions trigger the appearance of a `dialog` element written with [Pug](https://pugjs.org/api/getting-started.html) and precompiled to `dist/markup`. They are accessed by `app-content.js` and modified using a helper functions `template()` and `el()`. The appearance of these are as described below:
 
-`App.uploadToDocuments()` takes an `HTMLElement` (the `<praktiki-print-preview>` web component) and converts it to PDF using [html2pdf.js](https://www.npmjs.com/package/html2pdf.js/v/0.9.0). The `output()` method can be used to create a `blob` for upload via `fetch()`. 
+- **Tasks:** WCs see tab separated lists of daily tasks including new leads, appointment reminders, touchpoints, birthdays, and patient requests. DCs see the same with an added follow-up list and visit summary list. A "message all" `button` appears at the top and will programmatically complete all daily messaging if the patient is signed in to Carbon. A `button` at the bottom generates the daily huddle or report, depending on time of day.
 
-```
-html2pdf().from(PraktikiPrintPreview).set({
-  margin: 1,
-  jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-}).output("blob", {filename: "filename.pdf"}, "pdf").then(async (blob) => {
-    try{
-        let res = await fetch("https://axis.thejoint.com/rest/v11_24/Documents/temp/file/filename", {
-            method: "POST",
-            body: blob,
-        });
-    } catch (error) {
-        ...
-    }
-});
-```
+- **Print:** A dropzone appears left for patient selection, defaulting to the previous selection or current record. A `select` element appears right of this, above tab separated lists of printable home resources and patient records. It includes options to generate a "superbill", "excuse slip", "record release", or "wellness review". A `button` is right of this and, on click, will replace the `dialog` content with a `form` allowing output customization, as well as a left aligned, editable preview of the output. Print and save options appear below.
 
-The contact record must also be updated after document each upload.
+- **Message:** A dropzone appears left for patient selection, defaulting to the previous selection or current record. Below is a tab separated list of conversations, message options, bulk operations. Scrollable conversation history appears right aligned, with a `textarea` and send `button` below. Message notifications (only for active conversations) are handled with the chrome.notifications API.
 
-```
-const res = await fetch(https://axis.thejoint.com/rest/v11_24/Contacts/{patient-id}/link/documents, {
-    method: "POST",
-    body: {
-        deleted: false,
-        doc_type: "Sugar",
-        revision: 1,
-        is_template: false,
-        clinicname_c: false,
-        is_incorrect_c: false,
-        assigned_user_id: "user-id",
-        category_id: "Other",
-        subcategory_id: "Other",
-        "filename": "filename.pdf",
-        "document_name": "filename.pdf",
-        "description": "File description...",
-        "filename_guid": "filename-guid"
-    }
-});
-```
+- **Schedule:** Tab separated lists detailing daily appointments and expected daily visits appear left. A `form` element appears right, allowing the user to create a new appointments or follow-ups.
 
-This call may also be used to correct the document's category, subcategory, description, name, or status (`is_incorrect_c: true`).
+- **Visit (DC only):** Horizontal tabs for "history", "exam", "treatment", and "review". The first (history) panel includes a dropzone for patient selection, defaulting to the previous selection or current record. Vertical tabs list complaints, with corresponding panels containing a `form` specifying onset, palliative/provocative items, site/distribution, severity, and timing/trend. An editable table representing past medical history and medication history appears below. The second (exam) panel features a vertical tablist of diagnoses at the left corresponding panels containing a `form` element with fields describing diagnostic criteria. The third (treatment) panel contains a `form` allowing the user to specify progress, change, and adverse events with treatment. A simplified treatment chart appears within, and response to treatment and treatment modifications can be specified thereafter. The fourth and final tab includes a live preview of the note with a completion score at the right and a set of suggestions to improve note quality. It also includes a list of staged documents to upload, if necessary.
 
-### Extension UI
+- **Billing:** Tab separated lists detailing recently declined billing, upcoming account reactivation, and upcoming credit card expiration. Right aligned `form` element allowing for manual transactions in the case of network/reader error. A scrollable list of staged transactions.
 
-Print options (and most other features) are accessible inside of an `<md-sheet>` element at the right side of the viewport. This sheet is injected immediately with `content.js` and is customized to the given `App.name` and `App.resource`.
+- **Reassign (shortcut, DC only):** A shortcut removing doctor assignment from pending notes, allowing for access by any in-clinic provider. Useful to correct accidental assignment.
+- **Reauthenticate:** A simple login `form` for AXIS credentials (and Carbon credentials if first-time-login or if password change is detected). Refreshes tokens and other authentication data across front office and Carbon, as well as back office if initiated from a back office resource.
+- **Help:** A set of `details` elements containing common problems/questions. A support contact `form` element.
+- **Feedback:** A list of known problems and scheduled updates. A contact `form` element.
+- **Settings:** A link to the extension's settings page. System changes (such as authentication status) appear "toast-style" above the main dialog.
 
-### Alerts at a glance
+Most of these, when a patient record is selected, will be headed with a set of account flags and, if present, a visibly distinct "areas of concern" and/or "quick notes" alert. During blocking asynchronous or other time consuming operations, the `dialog` element is collapsed to show only `progress` element and its `label`, along with a `button` set to hide the indicator or cancel the operation. For non-blocking operations, status may be displayed via the chrome.notifications API.
 
-In a pending visit, and on a patient profile, certain patient account flags will appear at the top of the `<md-sheet>`. These include:
+To avoid breaking changes, the AXIS interface is rarely modified by `app-content.js`. There are a few exceptions:
 
-- Medicare Eligible
-- Forms Due (includes ABN, Wellness Review, Intake)
-- Payment Due
-- Treatment Restriction
-- New Patient
-
-A detailed description of the flags will appear underneath. Flags related to the patient's account (forms/payment due) are linked to their corresponding _front office_ resource.
-
-### Medical Documentation
-
-In a pending visit, the `<md-sheet>` is populated with input components specifying:
-
-- visit type (slider; active care, maintenance)
-- reason for visit (problem list; editable)*
-- patient-reported progress (slider; better, same, worse)*
-- new injury or complication (chipset)
-- patient-reported adverse events (chipset)
-- differential diagnosis (checklist, hidden by default)*
-- phase of care (relief, recovery, wellness)*
-- care plan compliance (yes/no)*
-- care plan modifications (home instructions)*
-
-The visit type selector will be a horizontal slider. Selecting maintenance will prompt the user to resolve all problems, and will hide all starred (*) elements (see above).
-
-The problem list is presented as a table and allows for the specification of name, onset (acute, chronic; traumatic, non-traumatic; sudden, gradual, persistent), severity (0-10), disability (same as intake), category (subclinical, mild, moderate, severe), and previous provider (MD, DO, PT, DC, RN, PA, other, none). Problems can be removed individually or in bulk, with valid removal reasons consisting of:
-
-- resolved through treatment
-- resolved naturally
-- resolved through care of another provider
-- assigned to another provider
-- replaced with a new problem
-- reached maximum improvement
-- problem has... [other]
-- added in error
-
-The user will have the option to quick-add new minor problems/complications that do not change the current care plan (ie "recently sick," "sore after exercise", etc). This will consist of a `input[type=checkbox]`, `label`, and adjacent `md-chip-set` containing common entires. When `checked`, a `textarea` will be prepended to allow for detailed entry. Adverse events can be reported via a similar interface. 
-
-For exam visits, a differential diagnosis is presented as a checklist based on the listed problem. For multiple problems, multiple checklists are presented as a series of tabs and tab panels. For treatment visits is, an uneditable list of prior diagnoses is presented.
-
-These input components directly modify the properties of `BackOfficePatient`. When the `subjective()` method is called, these properties (and others on the object) are used to compose a narrative string. For example:
-
-> This 26 year old male presents for evaluation and management of acute low back pain that began suddenly while lifting his daughter two days ago. He reports prior low back pain, but says this problem is unique in quality and severity. Pain improves with the use of ice and stretching, and worsens with bending and twisting. Sharp pain occurs at the right side of the low back, with numbness and tingling affecting the right posterior thigh. It does not cross the knee, and there is no loss of strength. This problem has remained constant since onset. 
-
-The `value` of `<textarea id="subjective">` in AXIS is then set to the value of this string. This automatically generated text will update to reflect changes to input components within both Praktiki and AXIS. The user can also add and modify this text directly. This system also applied to the objective, assessment, and plan fields within AXIS.
-
-#### Resolving Automatic and User Generated Text
-
-To avoid collisions between automatic and user generated text, each `textarea` will be monitored for `keydown` events where characters are manually added to, or removed from, `textarea.value`. Changes to each `textarea` will be tracked with the `App` instance. `App.axis.ui.soap` will be assigned `subjective`, `objective`, `assessment`, and `plan` properties with the following structure. 
-
-```
-subjective: {
-    1: {
-        substring: "Knock knock" // sentence #1,
-        isUserEdited: false,
-        isSystemEdited: true,
-        indexStart: 0,
-        indexEnd: 10,
-        category: "prompt"
-        subcategory: null,
-        priority: 1
-    },
-    2: {
-        substring: "Who's there?" // sentence #2
-        isUserEdited: true,
-        isSystemEdited: false,
-        indexStart: 11,
-        indexEnd: 23,
-        category: "freeform",
-        subcategory: null,
-        priority: 1
-    }
-    ...
-}
-```
-
-This effectively flags individual sentences within `value` as "do not modify automatically" if they have been directly written or modified by the user. As implied in the previous JSON structure, Praktiki will set `isSystemEdited` to `true` when adding or modifying sentences.
-
-These objects, representing each sentence, can added by Praktiki directly and will be automatically added when the `keydown` event `key` is ".", "?", ";", or "!". Likewise, a sentence object will be removed when the corresponding ".", "?", ";", or "!" is removed.
-
-To determine the identity of a removed character, `value` will be compared across `keydown` and `keyup` events. To determine which sentence is being modified, `selectionStart` and `selectionEnd` will be compared to the `indexStart` and `indexEnd` of each sentence.
-
-New sentences added by Praktiki will be appended to `value`. Praktiki may use `category`, `subcategory`, and `priority` sort and maintain logical sentence order.
-
-### Adding an Exit Button
-
-In a pending visit, Praktiki hides the built-in "Save" and "Complete" buttons in favor of custom "Exit", "Save", and "Complete" buttons.
+- An option to hide erroneous documents in front office (replacing a non-functional checkbox).
+- Unchecking the "match subluxations" checkbox inverts its action in back office.
+- Treatment details will roll over from the previous exam in back office.
+- Auto-populated palpatory findings will be removed in back office, unless the user chooses to carry over ALL previous visit findings.
+- An option to "close" without saving is added to back office.

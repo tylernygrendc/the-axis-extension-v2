@@ -1,0 +1,46 @@
+nav
+    button(title="", name="tool", value="tasks", aria-expanded="false")
+dialog
+    section#tasks
+        // task tabs
+        - const taskTabs = ["reminders", "follow-ups", "requests", "summaries", "birthdays"];
+        div(role="tablist", aria-label=""): each tab, i in taskTabs
+            button(role="tab", 
+                type="button", 
+                controls=`${tab}-panel`, 
+                id=`${tab}-tab`, 
+                tabindex=`${i ? "-1" : "0"}`, 
+                aria-selected="false", 
+                data-badge="0") #{tab}
+        // task tabpanels
+        each tab in taskTabs
+            div(role="tabpanel", id=`${tab}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden)
+                table
+                    thead
+                        tr
+                            th Patient
+                            th Birthdate
+                            th Phone
+                            th Type
+                            th Task
+                            th Email
+                            th Text
+                            th Call
+                    tbody
+                        template#task-row: tr
+                            td(data-patient)
+                            td(data-birthdate)
+                            td(data-phone)
+                            td(data-type)
+                            td(data-task)
+                            td(data-email): button(type="button", name="action", value="email", aria-pressed="false") Send
+                            td(data-text): button(type="button", name="action", value="text", aria-pressed="false") Send
+                            td(data-call): button(type="button", name="action", value="call", aria-pressed="false") Complete
+        section#print
+            form(method="post", action="")
+                input(type="search")
+                button(type="submit")
+        
+        
+
+        

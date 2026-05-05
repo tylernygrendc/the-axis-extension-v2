@@ -1,3 +1,11 @@
+function capitalize(string = "", firstOnly = true) {
+  return string
+    .split(firstOnly ? /(\.\s+)|(?=^[A-Z])/gi : /(\s+)/g)
+    .reduce((acc, cv) => {
+      acc += cv.charAt(0).toUpperCase() + cv.slice(1);
+      return acc;
+    }, "");
+}
 function kebabCase(string) {
   return string.split(/(?=[A-Z])|_|\s/g).reduce((acc, cv, i, initialArray) => {
     return i < initialArray.length - 1
@@ -729,6 +737,16 @@ class App {
         break;
     }
   }
+  set currentPatient(patient = new Patient()) {
+    // store the current patient
+    contentStorage.set({ currentPatient: patient }, "local");
+    // TODO update the patient access log
+    // ! update is not a method that exists on contentStorage
+    // contentStorage.update({patientAccessLog: patient.id}, "sync");
+  }
+  get currentPatient() {
+    return contentStorage.get(["currentPatient"], "local"); // promise
+  }
   get resource() {
     return this.isFrontOffice
       ? kebabCase(window.location.hash.split("/")[0].slice(1))
@@ -971,7 +989,7 @@ class App {
           e.target.parentElement.setAttribute("data-state", "open");
         }
       });
-      new MutationObserver((mutationList, observer) => {
+      new MutationObserver((mutationList) => {
         for (const m of mutationList) {
           if (m.type === "attributes" && m.attributeName === "data-state") {
             if (m.target.getAttribute("data-state") === "closed") {
@@ -1331,11 +1349,11 @@ class App {
       });
   }
   enablePrint() {
-    // allow select to toggle options
-    document
-      .querySelector("#pi-print-generate .selector select")
-      .addEventListener("change", (e) => {
-        // update the selected option
+    // store print button and print dialog
+    const button = document.querySelector("#print-resource-button");
+    const dialog = document.querySelector("#print-resource-dialog");
+    // named callback functions that can be "disabled" (removed) later
+    const matchOptionsToResource = (e) => {
         document
           .querySelectorAll("#pi-print-generate [class^=option]")
           .forEach((option) => {
@@ -1345,7 +1363,133 @@ class App {
               option.removeAttribute("data-state");
             }
           });
-      });
+      },
+      showPrintPreview = async (e) => {
+        // show print preview on print button click
+        e.preventDefault();
+        // append progress indicator
+        dialog
+          .querySelector("iframe[slot=content]")
+          .contentDocument.body.replaceWith(
+            el({
+              tagName: "body",
+              childList: [
+                el({
+                  tagName: "md-circular-progress",
+                  attributes: {
+                    indeterminate: true,
+                  },
+                }),
+              ],
+            }),
+          );
+        // show the dialog
+        await dialog.show();
+        // get the resource name
+        const resource = e.target.parentElement.querySelector("select").value;
+        // get resource options
+        const options = document
+          .querySelectorAll(`#pi-print-generate .option-${resource} input`)
+          .reduce((acc, cv) => {
+            acc[cv.name] = cv.value;
+            return acc;
+          }, {});
+        // generate resource and set dialog content
+        dialog
+          .querySelector("iframe[slot=content]")
+          .contentDocument.body.replaceWith(
+            el({
+              tagName: "body",
+              innerHTML: await this[`generate${capitalize(resource)}`](
+                await this.currentPatient,
+                options,
+              ),
+            }),
+          );
+      },
+      saveResource = async (e) => {
+        // create a name for the file
+        const filename = ``;
+        const statusIcon = e.target.querySelector("md-icon");
+        // update status icon
+        statusIcon.innerText = "arrow_upload_ready";
+        // create a blob
+        const pdfBlob = await html2pdf()
+          .set({
+            margin: 0.5,
+            filename: filename,
+            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+          })
+          .from(dialog.querySelector("iframe[slot=content]").contentDocument)
+          .output("blob"); // returns Blob
+        // update status icon
+        statusIcon.innerText = "arrow_upload_progress";
+        // send to axis
+        let res = await frontOfficeFetch(
+          "https://axis.thejoint.com/rest/v11_24/Documents/temp/file/filename",
+          {
+            method: "POST",
+            body: new FormData().append("pdf", pdfBlob, filename),
+          },
+        );
+        if (res.ok) {
+          res = await fetch(
+            `https://axis.thejoint.com/rest/v11_24/Contacts/${await this.currentPatient.id}/link/documents`,
+            {
+              method: "POST",
+              body: {
+                deleted: false,
+                doc_type: "Sugar",
+                revision: 1,
+                is_template: false,
+                clinicname_c: false,
+                is_incorrect_c: false,
+                assigned_user_id: "user-id",
+                category_id: "Other",
+                subcategory_id: "Other",
+                filename: "filename.pdf",
+                document_name: "filename.pdf",
+                description: "File description...",
+                filename_guid: "filename-guid",
+              },
+            },
+          );
+        }
+      },
+      printResource = () => {
+        dialog
+          .querySelector("iframe[slot=content]")
+          .contentWindow.addEventListener("afterprint", async (e) => {
+            await dialog.close();
+            e.target.replaceWith(
+              el({
+                tagName: "iframe",
+                attributes: {
+                  slot: content,
+                },
+              }),
+            );
+          });
+        dialog.querySelector("iframe[slot=content]").contentWindow.print();
+      };
+
+    // * steps to enable print
+    // allow select to toggle resource options
+    document
+      .querySelector("#pi-print-generate .selector select")
+      .addEventListener("change", matchOptionsToResource);
+    // show selected resource in print preview
+    button.addEventListener("click", showPrintPreview);
+    // save when save button is clicked
+    dialog
+      .querySelector("[slot=actions] [value=save]")
+      .addEventListener("click", saveResource);
+    // print when print button is clicked
+    dialog
+      .querySelector("[slot=actions] [value=print]")
+      .addEventListener("click", printResource);
+    // indicate that printing is enabled
+    button.querySelector("md-icon[slot=icon]").innerText = "print";
   }
   enableTabs() {
     document.querySelectorAll("md-tabs").forEach((tablist) => {
@@ -1364,6 +1508,24 @@ class App {
         }, 0);
       });
     });
+  }
+  generateExcuse(
+    patient = new Patient(),
+    startDate = new Date(),
+    modificationList = [],
+    endDate = 0,
+  ) {
+    return "";
+  }
+  generateReview(patient = new Patient()) {
+    return "";
+  }
+  generateSuperbill(
+    patient = new Patient(),
+    startDate = new Date(),
+    endDate = new Date(),
+  ) {
+    return "";
   }
 }
 
