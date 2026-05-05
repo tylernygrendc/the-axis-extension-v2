@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 // every front office API
 const frontOfficeAPI = {
   login: (username = "", password = "") => {
@@ -525,7 +523,7 @@ const frontOfficeAPI = {
   },
 };
 
-const backOfficeAPIs = {
+const backOfficeAPI = {
   login: (username, password, csrfToken, inClinic) => {
     return {
       category: "auth",
