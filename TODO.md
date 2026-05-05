@@ -1,5 +1,5 @@
-- [ ] Update `manifest.json` host permissions
-- [ ] Add `static` method `get()` to `User` class
+- [x] Update `manifest.json` host permissions
+- [x] Add `static` method `get()` to `User` class
 - [ ] Add `static` method `fromId()` to `Patient` class
 - [ ] Add `encrypt()` to `utilities.mjs`
 - [ ] Add `onAuthStateChange()` to `App` class

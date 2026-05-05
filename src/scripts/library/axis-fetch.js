@@ -1,46 +1,72 @@
-export function frontOfficeFetch(resource = "", options = {}) {
-  return chrome.runtime
-    .sendMessage({
+export async function frontOfficeFetch(resource = "", options = {}) {
+  try {
+    let response = await chrome.runtime.sendMessage({
       type: "fetch",
       resource: resource,
       options: options,
-    })
-    .then((res) => {
-      if (!res) throw new Error("No response received from background script.");
+    });
+    if(response.ok) {
       return {
-        ok: res.ok,
-        status: res.status,
-        statusText: res.statusText,
-        headers: new Headers(res.headers),
-        url: res.url,
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        headers: new Headers(response.headers),
+        url: response.url,
         json: async () => {
-          const text = res.isBinary ? new TextDecoder().decode(new Uint8Array(res.body)) : res.body;
+          const text = response.isBinary ? new TextDecoder().decode(new Uint8Array(response.body)) : response.body;
           return JSON.parse(text);
         },
         text: async () => {
-          res.isBinary ? new TextDecoder().decode(new Uint8Array(res.body)) : res.body;
+          response.isBinary ? new TextDecoder().decode(new Uint8Array(response.body)) : response.body;
         },
         arrayBuffer: async () => {
-          if (res.isBinary) return new Uint8Array(res.body).buffer;
-          return new TextEncoder().encode(res.body).buffer;
+          if (response.isBinary) return new Uint8Array(response.body).buffer;
+          return new TextEncoder().encode(response.body).buffer;
         },
       };
-    });
+    } else {
+      throw new Error("No response received from background script.");
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      ok: false,
+      statusText: error.message,
+    };
+  }
 }
 
-export function frontOfficeBulkFetch(requests, options) {}
+export function frontOfficeBulkFetch(requests = [], options = {}) {
+  try {
+    // modify options for bulk fetch
+    options = Object.assign(options, { requests: requests, method: "POST" });
+    // fetch normally via frontOfficeFetch
+    return await frontOfficeFetch("https://axis.thejoint.com/rest/v11_24/bulk", options);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export function frontOfficeLogin(email, password) {
+
+}
 
 export function frontOfficeRefresh() {
-  contentStorage.get("refreshToken", "sync").then((record) => {
-    if (record.ok)
-      frontOfficeFetch(`https://axis.thejoint.com/rest/v11_24/oauth2/token`, {
-        method: "POST",
-        body: {
-          grant_type: "refresh_token",
-          refresh_token: record.results.refreshToken,
-          refresh: true,
-        },
-      }).then((res) => {
+  // get refresh token
+  let record = await contentStorage.get("refreshToken", "sync");
+  
+  if (record.ok) {
+    const api = frontOfficeAPI.refresh(record.results?.refreshToken);
+    let response = await frontOfficeFetch(api.url, {
+      method: api.method,
+      body: api.body
+    });
+    response = await response.json();
+  } else {
+
+  }
+  
+  .then((res) => {
         if (res.ok) {
           // update tokens
           res.json().then((json) => {

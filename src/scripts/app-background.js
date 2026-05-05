@@ -1,53 +1,41 @@
+import { cleanStorage } from "./library/chrome-storage";
+
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   try {
     switch (req.type) {
       case "storage":
-        if (req.method === "get")
-          chrome.storage[req.location].get(query).then((records) => {
-            for (const key of query) {
-              // add each matching record to an array
-              const recordsArray = [];
-              if (records[key]) {
-                // only if the record exists
-                if (req.sameOrigin) {
-                  if (records[key].tabId === sender.tab.id) {
-                    recordsArray.push({
-                      [key]: records[key].body,
-                    });
-                  }
-                } else {
-                  recordsArray.push({
-                    [key]: records[key].body,
-                  });
-                }
-              }
-              sendResponse({
-                ok: true,
-                statusText: "OK",
-                results: recordsArray,
-              });
+        //* to get stored records
+        if (req.method === "get") {
+          // look for matching records
+          chrome.storage[req.location].get(req.query).then((records) => {
+            // separate expired and unexpired
+            const expiredRecords = [],
+              unexpiredRecords = [];
+            for (const [key, record] of Object.entries(records)) {
+              if (record?.expiration < Date.now()) expiredRecords.push(key);
+              else unexpiredRecords.push({ [key]: record });
             }
+            // remove expired records
+            if (expiredRecords.length) chrome.storage[req.location].remove(expiredRecords);
+            // return unexpired records
+            sendResponse(unexpiredRecords);
           });
-        else if (req.method === "set")
-          for (const [key, val] of Object.entries(req.body)) {
+          return true; // keeps the connection open
+          //* to store new records
+        } else if (req.method === "set") {
+          for (const [key, record] of Object.entries(req.content)) {
             chrome.storage[req.location].set({
               [key]: {
                 tabId: sender.tab.id,
-                url: sender.url,
-                timestamp: new Date().getTime(),
+                timestamp: new Date().now(),
                 expiration: req.expires,
-                get expired() {
-                  return this.expiration < new Date().time();
-                },
-                body: val,
+                content: record,
               },
             });
           }
-        sendResponse({
-          ok: true,
-          statusText: "OK",
-        });
-        return true;
+          sendResponse({ ok: true });
+          return true; // keeps the connection open
+        }
       case "fetch":
         // add the oauth token before fetching
         chrome.storage.sync.get("oauthToken").then((records) => {
@@ -106,20 +94,3 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     });
   }
 });
-
-const storage = {
-  clean: () => {
-    for (const location of ["local", "session", "sync"]) {
-      const now = new Date().getTime();
-      const staged = [];
-      chrome.storage[location].get(null).then((records) => {
-        for (const [key, record] of Object.entries(records)) {
-          if (record.expiration > now) staged.push(record);
-        }
-      });
-      chrome.storage[location].remove(staged).then((error) => {
-        if (error) console.error(error);
-      });
-    }
-  },
-};
