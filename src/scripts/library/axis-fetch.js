@@ -72,6 +72,7 @@ export function frontOfficeRefresh() {
   // attempt refresh
   if (record.ok) {
     const api = frontOfficeAPI.refresh(record.results?.refreshToken);
+    // TODO switch to api.fetchRequest
     let response = await frontOfficeFetch(api.url, {
       method: api.method,
       body: api.body

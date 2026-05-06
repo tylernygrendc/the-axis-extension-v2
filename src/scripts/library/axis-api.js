@@ -37,12 +37,12 @@ const frontOfficeAPI = {
         return options;
       },
       get bulkRequest() {
-        return `${this.fetchRequest.split(/(?=v11)/gi)[1] || this.fetchRequest}`;
+        return {
+          ...this.fetchOptions,
+          url: `${this.fetchRequest.split(/(?=v11)/gi)[1] || this.fetchRequest}`,
+        };
       },
-      get bulkOptions() {
-        return this.fetchOptions;
-      }
-    };
+    }
   },
   refresh: (refreshToken) => {
     return {

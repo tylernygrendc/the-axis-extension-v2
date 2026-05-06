@@ -5,18 +5,8 @@ import { contentStorage } from "./chrome-storage";
 export class User {
   /// a class representing the current user
   /// instantiate with `const user = await User.get();`
-  constructor(axisUserObject) {
+  constructor(axisUserObject = {}) {
     Object.assign(this, axisUserObject);
-  }
-  /// necessary for back office authentication
-  /// send csrfToken with all non-login fetch requests
-  get csrfToken() {
-    return document.querySelector("meta[name=csrf-token]")?.content;
-  }
-  /// necessary for front office authentication
-  /// send oauthToken with all non-login fetch requests
-  get oauthToken() {
-    return localStorage.getItem("prod:SugarCRM:AuthAccessToken");
   }
   //* get the current user
   static async get() {
@@ -32,6 +22,12 @@ export class User {
       console.error(error);
       return {}; // return empty object if error
     }
+  }
+  get csrfToken() {
+    return document.querySelector("meta[name=csrf-token]")?.content;
+  }
+  get oauthToken() {
+    return localStorage.getItem("prod:SugarCRM:AuthAccessToken");
   }
   //* get clinic from axis
   async clinic(id) {
