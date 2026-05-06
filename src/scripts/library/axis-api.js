@@ -22,6 +22,26 @@ const frontOfficeAPI = {
       query: {
         platform: "base",
       },
+      get fetchRequest() {
+        return `${this.url}${this.hasOwn(query) ? "?" += new URLSearchParams(this.query) : ""}`;
+      },
+      get fetchOptions() {
+        const options = {
+          method: this.method,
+          timeout: this.timeout || 180000,
+          credentials: this.credentials || "include"
+        }
+        if(this.method === "POST" && typeof this.body === 'object' ) {
+          options.body = new URLSearchParams(this.body).toString();
+        }
+        return options;
+      },
+      get bulkRequest() {
+        return `${this.fetchRequest.split(/(?=v11)/gi)[1] || this.fetchRequest}`;
+      },
+      get bulkOptions() {
+        return this.fetchOptions;
+      }
     };
   },
   refresh: (refreshToken) => {
