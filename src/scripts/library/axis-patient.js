@@ -1,31 +1,50 @@
-import { frontOfficeFetch } from "./axis-fetch";
-import { oneLine } from "../_string.mjs";
-// import { PDFParse } from "pdf-parse";
-// ! PDFParse is imported at document level to avoid collisions
+import { frontOfficeBulkFetch, frontOfficeFetch } from "./axis-fetch";
+/// a class representing a given patient
+/// instantiate with `const patient = await Patient.fromId(<patientId>);`
 export class Patient {
-  constructor(id = "") {
-    this.id = id;
-    this.visitList = [];
-    this.diagnosisList = [];
-    this.problemList = [];
-    this.treatmentPlan = {};
+  constructor(axisPatientObject = {}) {
+    Object.assign(this, axisPatientObject);
   }
-  get nextVisit() {
-    const visit = new Date(this.previousVisit.date_entered);
-    return new Date(
-      Math.min(
-        visit.setDate(
-          visit.getDate() + Math.ceil((this.treatmentPlan.totalWeeks * 7) / this.treatmentPlan.totalVisits),
-        ),
-        this.treatmentPlan.end,
-      ),
-    );
-  }
-  get previousExam() {
-    return this.visitList.find((visit) => visit.type != 1);
-  }
-  get previousVisit() {
-    return this.visitList[0];
+  //* get any axis patient by patient id
+  static async fromId(id = "") {
+    // define the apis to be used
+    // TODO, tune maxNum
+    const requests = [
+      frontOfficeAPI.getPatientById(id),
+      frontOfficeAPI.getVisitsByPatientId(id),
+      frontOfficeAPI.getPurchasesByPatientId(id),
+      frontOfficeAPI.getDocumentsByPatientId(id),
+      frontOfficeAPI.getTasksByPatientId(id),
+      frontOfficeAPI.getNotesByPatientId(id),
+      frontOfficeAPI.getRequestsByPatientId(id),
+    ];
+    // prepare requests array for bulk fetch
+    // TODO expand usage of bulkRequest in axis-api.js
+    const bulkRequests = requests.map((request) => request.bulkRequest);
+    // store the output names in matching order
+    // TODO put create this field in axis-api.js
+    const outputName = requests.map((request) => request.outputName);
+    // attempt bulk fetch
+    let responseList = await frontOfficeBulkFetch(bulkRequests);
+    // parse response
+    if (responseList.ok) {
+      responseList = await responseList.json();
+    } else {
+      // there was an error
+    }
+    // create an object to assemble patient records
+    const axisPatientObject = {};
+    // iterate over response records
+    responseList.forEach((response, i) => {
+      // most are added to Patient as a list
+      if (i) {
+        Object.assign(axisPatientObject, { [outputName[i]]: response.contents });
+        // the first response content object is added directly to Patient
+      } else {
+        Object.assign(axisPatientObject, response.contents[0]);
+      }
+    });
+    return new Patient(axisPatientObject);
   }
   get isMilitary() {
     return this.is_military;
@@ -57,306 +76,44 @@ export class Patient {
     return this.see_notes;
   }
   get hasTask() {
-    // TODO: add setter (defaults to false)
+    // TODO: fix, defaults to false
     return false;
   }
   get hasDoNotCall() {
     return this.do_not_call;
   }
   get hasDoNotAdjust() {
-    // TODO: add setter (defaults to false)
+    // TODO: fix, defaults to false
     return false;
   }
-  getPatient() {
-    new Promise((resolve, reject) => {
-      // requests for axis bulk api
-      const requests = [
-        // patient details
-        {
-          type: "GET",
-          dataType: json,
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}
-              ?erased_fields=true
-              &view=record
-              &fields=
-                producttype_c%2C
-                payment_due%2C
-                id%2C
-                birthdate%2C
-                patientcode_c%2C
-                lastvisitdate_c%2C
-                ismedicareeligible_c%2C
-                referred_by_c%2C
-                send_forms_c%2C
-                bundle_type%2C
-                carecard_c
-              &viewed=1`,
-          ),
-        },
-        //
-        // visit history
-        {
-          type: "GET",
-          dataType: json,
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/contacts_tj_purchases_1
-              ?erased_fields=true
-              &view=subpanel-for-contacts-contacts_tj_purchases_1
-              &fields=
-                visit_type%2C
-                purchaseactive%2C
-                status%2C
-                purchasetype%2C
-                tax%2C
-                monthlyamount_notax%2C
-                overvisitcost_notax%2C
-                my_favorite
-              &max_num=${20}
-              &order_by=date_entered%3Adesc`,
-          ),
-        },
-      ];
-      frontOfficeFetch(`https://axis.thejoint.com/rest/v11_24/bulk`, {
-        method: "POST",
-        body: { requests: requests },
-      }).then((res) => {
-        if (res.ok) {
-          res.json().then((json) => {
-            Object.assign(this, json[0].contents.records);
-            this.visitList = json[1].contents.records;
-            resolve(this);
-          });
-        } else {
-          reject(new Error(res.statusText));
-        }
-      });
-    }).then(() => {
-      // requests for axis bulk api
-      const requests = [
-        // purchase history
-        {
-          type: "GET",
-          dataType: "json",
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/contacts_tj_purchases_1
-              ?erased_fields=true
-              &view=subpanel-for-contacts-contacts_tj_purchases_1
-              &fields=
-                purchaseactive%2C
-                status%2C
-                purchasetype%2C
-                tax%2C
-                monthlyamount_notax%2C
-                overvisitcost_notax%2C
-                my_favorite
-              &max_num=5
-              &order_by=date_entered%3Adesc`,
-          ),
-        },
-        // documents
-        {
-          type: "GET",
-          dataType: "json",
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/documents
-              ?erased_fields=true
-              &view=subpanel-for-contacts-documents
-              &fields=
-                date_entered%2C
-                filename%2C
-                related_doc_id%2C
-                category_id%2C
-                my_favorite
-              &max_num=5
-              &order_by=date_modified%3Adesc
-              &filter%5B0%5D%5Bis_incorrect_c%5D=false`,
-          ),
-        },
-        // tasks
-        {
-          type: "GET",
-          dataType: "json",
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/all_tasks
-              ?erased_fields=true
-              &view=subpanel-for-contacts-all_tasks
-              &fields=
-                parent_name%2C
-                description%2C
-                parent_type%2C
-                task_script_c%2C
-                task_disclaimer%2C
-                task_type_c%2C
-                dri_subworkflow_id%2C
-                my_favorite
-              &max_num=5
-              &order_by=status%3Adesc`,
-          ),
-        },
-        // office notes
-        {
-          type: "GET",
-          dataType: "json",
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/contacts_tj_officenotes_1
-              ?erased_fields=true
-              &view=subpanel-for-contacts-contacts_tj_officenotes_1
-              &fields=
-                date_entered%2C
-                my_favorite
-              &max_num=5
-              &order_by=date_entered%3Adesc`,
-          ),
-        },
-        // cancellations and freezes
-        {
-          type: "GET",
-          dataType: "json",
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/contacts_tj_patientrequests_1
-              ?erased_fields=true
-              &view=subpanel-for-contacts-contacts_tj_patientrequests_1
-              &fields=
-                type%2C
-                status%2C
-                reason%2C
-                date_entered%2C
-                id%2C
-                signpaperforms%2C
-                my_favorite
-              &max_num=5`,
-          ),
-        },
-        // intake forms trackers
-        {
-          type: "GET",
-          dataType: "json",
-          timeout: 180000,
-          contentType: "application/json",
-          url: oneLine(
-            `v11_24/Contacts/${this.id}/link/contacts_tj_intakeformstracker_1
-              ?erased_fields=true
-              &view=subpanel-for-contacts-contacts_tj_intakeformstracker_1
-              &fields=my_favorite
-              &max_num=5
-              &order_by=date_modified%3Adesc`,
-          ),
-        },
-      ];
-      Promise.all([
-        // get account data in bulk
-        new Promise((resolve, reject) => {
-          frontOfficeFetch("https://axis.thejoint.com/rest/v11_24/bulk", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: { requests: requests },
-          }).then((res) => {
-            if (res.ok) {
-              res.json().then((json) => {
-                ["purchases", "documents", "tasks", "notes", "requests", "trackers"].forEach((field) => {
-                  this[field] = json.contents.records; // an array of objects
-                });
-              });
-              resolve(true);
-            } else {
-              reject(new Error(res.statusText));
-            }
-          });
-        }),
-        // get previous exam details
-        new Promise((resolve, reject) => {
-          frontOfficeFetch(
-            oneLine(
-              `https://axis.thejoint.com/rest/v11_24/GotenbergPdfManager/download
-              ?module=TJ_Visits
-              &record=${this.previousExam.id}
-              &template_name=soap-note
-              &download=true`,
-            ),
-          ).then((res) => {
-            if (res.ok) {
-              res.arrayBuffer().then((arrayBuffer) => {
-                PDFParse(arrayBuffer).then((pdf) => {
-                  let array = [];
-                  pdf.text = pdf.text.trim().replaceAll(/[\r\n]/g, "");
-                  // get problems from pdf soap
-                  array = pdf.text
-                    .split(/The patient presents with the following complaint\(s\):/g)[1]
-                    .split(/\sof waking hours/g);
-                  for (let i = 0; i < array.length - 1; ++i) {
-                    const [name, severity, frequency] = array[i].split(/\srating\s|\sout of 10 and occurs\s/g);
-                    this.problemList.push({
-                      name: name,
-                      severity: `${severity} out of 10`,
-                      frequency: `${frequency} of waking hours`,
-                    });
-                  }
-                  // get diagnoses from pdf soap
-                  array = pdf.text.split(/Diagnosis codes:|Following the visit|Plan/g)[1].split(/([A-Z][0-9]{2})/g);
-                  for (let i = 1; i < array.length; ++i) {
-                    const str = array[i] + array[++i];
-                    const [code, description] = str.split(/\s\-\s/g);
-                    this.diagnosisList.push({
-                      code: code,
-                      description: description,
-                    });
-                  }
-                  // get treatment plan from pdf soap
-                  array = pdf.text
-                    .split(/Chiropractic adjustments were performed on the following levels:/g)[1]
-                    .split(
-                      /Treatment plan:|Recommended re-evaluation date:|Treatment Items:VisitsPer WeekBy DC|Chiropractor:/g,
-                    );
-                  this.treatmentPlan.description = array[1];
-                  this.treatmentPlan.end = new Date(array[2]);
-                  this.treatmentPlan.breakdown = array[3]
-                    .split(/[0-9]/g)
-                    .reduce((acc, cv, i) => {
-                      if (/[0-9]/g.test(cv)) acc.push(cv);
-                      return acc;
-                    }, [])
-                    .reduce((acc, cv, i, arr) => {
-                      if (!(i % 2))
-                        acc.push({
-                          frequency: cv,
-                          duration: arr[i + 1],
-                        });
-                    }, []);
-                  array = this.treatmentPlan.description.split(
-                    /A treatment plan of [0-9]* x's for a total of\s|\sweeks was set on\s|\sby\s|, DC, for an estimated\s|\svisits\./g,
-                  );
-                  this.treatmentPlan.totalWeeks = array[0];
-                  this.treatmentPlan.start = new Date(array[1]);
-                  this.treatmentPlan.provider = array[2];
-                  this.treatmentPlan.totalVisits = array[3];
-                  resolve(true);
-                });
-              });
-            } else {
-              reject(new Error(res.statusText));
-            }
-          });
-        }),
-      ]).then(() => {
-        return this;
-      });
-    });
+  async examList() {
+    // TODO fix, defaults to false
+    return false;
   }
+  async previousExam() {
+    // TODO check if the exam has already been stored
+    let exam = this.visitList.find((visit) => visit.visit_type != 1 && visit.status === "Completed");
+    const api = frontOfficeAPI.getPDFVisitsByPatientId(
+      this.id,
+      new Date(exam.date_entered).setHours(0, 0, 0, 0),
+      new Date(exam.date_entered).setHours(23, 59, 59, 999),
+    );
+    let response = await frontOfficeFetch(api.fetchRequest, api.fetchOptions);
+    if (response.ok) response = parseSOAPNote(await response.text());
+    return Object.assign(exam, response);
+  }
+  async previousVisit() {
+    // TODO add after refining above, same as above except find() criteria
+  }
+}
+
+function parseSOAPNote(text) {
+  // filter for diagnosis codes
+  // this could be limited to G, M, R, and S codes, probably
+  /[A-Z]{1}[0-9]{2}\.[A-Z0-9]*/gi;
+  // filter for CPT codes
+  // this should match all codes that axis will output
+  /[89]{2}[0-9]{3}/gi;
+  // TODO create a cpt/icd lookup for all possible *chiropractic* codes
+  // TODO write logic to default to M99.XX, M62.89, and/or other common codes based on known findings
 }
