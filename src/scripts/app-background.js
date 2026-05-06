@@ -1,4 +1,4 @@
-import { cleanStorage } from "./library/chrome-storage";
+import * as pdfjsLib from 'pdfjs-dist';
 
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   try {
@@ -27,70 +27,72 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
             chrome.storage[req.location].set({
               [key]: {
                 tabId: sender.tab.id,
-                timestamp: new Date().now(),
+                timestamp: Date.now(),
                 expiration: req.expires,
                 content: record,
               },
             });
           }
           sendResponse({ ok: true });
-          return true; // keeps the connection open
         }
       case "fetch":
         // add the oauth token before fetching
-        chrome.storage.sync.get("oauthToken").then((records) => {
-          // only if the token has been stored
-          // ! don't send token with login requests
-          if (records && req.resource !== "https://axis.thejoint.com/rest/v11_24/oauth2/token") {
-            req.options.headers = {
-              "OAuth-Token": records.oauthToken ? records.oauthToken.body : "",
-            };
+        const records = await chrome.storage.sync.get("oauth_token");
+        // continue if the token is found
+        if(records?.oauth_token) {
+          // add oauth token to every bulk request item if necessary
+          if (req.options?.body?.requests) {
+            req.options.body.requests.forEach(request => {
+              request.options = { 
+                ...request.options, 
+                headers: { ...request.options?.headers, "OAuth-Token": records.oauth_token.content } 
+              };
+            });
           }
-          // add oauth to bulk requests, if applicable
-          if (req.options.body.requests)
-            req.options.body.requests.forEach((request) => {
-              request.options.headers = {
-                "OAuth-Token": records.oauthToken ? records.oauthToken.body : "",
-              };
-            });
-          // stringify body (to prevent 422 error)
-          if (typeof req.options.body === "object") req.options.body = JSON.stringify(req.options.body);
-          // fetch the resource
-          fetch(req.resource, req.options)
-            .then((response) => {
-              const result = {
-                ok: response.ok,
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-                url: response.url,
-              };
-              const contentType = response.headers.get("content-type") || "";
-              if (contentType.includes("application/pdf") || req.resource.includes("download=true")) {
-                response.arrayBuffer().then((buffer) => {
-                  result.body = Array.from(new Uint8Array(buffer));
-                  result.isBinary = true;
-                  sendResponse(result);
-                });
-              } else {
-                response.text().then((text) => {
-                  result.body = text;
-                  result.isBinary = false;
-                  sendResponse(result);
-                });
-              }
-            })
-            .catch((error) => {
-              sendResponse({ ok: false, statusText: error.message });
-            });
-        });
-        return true;
+          // then attempt the fetch
+          const response = await fetch(req.resource, req.options);
+          // prepare the result for sending via sendMessage()
+          const result = {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            url: response.url,
+          };
+          // handle content based on content type
+          const contentType = response.headers.get("content-type") || "";
+          // for pdf downloads
+          if (contentType.includes("application/pdf") || req.resource.includes("download=true")) {
+            result.body = await getPDFText(await response.arrayBuffer());
+            sendResponse(result);
+          // for json
+          } else if (contentType.includes("application/json")) {
+            result.body = await response.json();
+          // for everything else
+          } else {
+            result.body = await response.text();
+            sendResponse(result);
+          }
+        } else {
+          // attempt refresh
+
+        }
     }
   } catch (error) {
-    console.error(error);
-    sendResponse({
-      ok: false,
-      statusText: error,
-    });
+    // TODO handle errors
   }
+  return true; // keeps the connection open for all cases
 });
+
+async function getPDFText(arrayBuffer) {
+  let fullText = "";
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  // iterate through pdf pages and scrape text
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const strings = content.items.map(item => item.str);
+    fullText += strings.join(" ") + "\n";
+  }
+  return fullText;
+}
