@@ -4,5 +4,5 @@
 - [ ] Add `encrypt()` to `utilities.mjs`
 - [ ] Add `onAuthStateChange()` to `App` class
 - [ ] Add `App.injectUI()` and remove "connect" methods
-- [ ] Expand `contentStorage` methods
+- [x] Expand `contentStorage` methods
 - [ ] Rebuild UI structure and styles
