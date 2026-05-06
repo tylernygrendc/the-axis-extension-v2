@@ -9,7 +9,6 @@
   "scripts": {
     "compile": "node pug.config.js && sass --no-source-map src/styles:dist/styles && rollup --config rollup.config.js",
     "compress": "npm run compile && zip ./dist/* && mkdir compressed && mv ./dist/*.zip ./dist.zip",
-    "material": "node symbols.config.js && node components.config.js",
     "pug": "node pug.config.js",
     "rollup": "rollup --watch --config rollup.config.js",
     "sass": "sass --no-source-map -w src/styles:dist/styles",
@@ -17,20 +16,22 @@
     "ship": "npm run compress"
   },
   "dependencies": {
-    "@rollup/plugin-node-resolve": "^15.3.0",
+    "dompurify": "^3.3.3",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "pdfjs-dist": "^5.7.284",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
     "@types/pug": "^2.0.10",
     "@types/ttf2woff2": "^2.0.2",
-    "chalk": "^5.3.0",
-    "dompurify": "^3.3.3",
-    "dotenv": "^17.2.1",
-    "html2pdf": "^0.0.11",
-    "html2pdf.js": "^0.14.0",
-    "pdf-parse": "^2.4.5",
-    "pug": "^3.0.3",
-    "qrcode": "^1.5.4",
-    "rollup": "^4.24.0",
-    "sass": "^1.80.3",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.4.2",
+    "pug": "^3.0.4",
+    "rollup": "^4.60.3",
+    "sass": "^1.99.0",
     "ttf2woff2": "^8.0.1"
   }
 }
