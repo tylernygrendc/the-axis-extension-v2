@@ -20,4 +20,3 @@ export const contentStorage = {
     });
   },
 };
-export function cleanStorage() {}
