@@ -31,18 +31,24 @@ const RequestExtensions = {
     this.query = { ...(this.query || {}), ...newQuery };
     return this;
   },
-  withFilter(field, value, operator, index = 0) {
+  withFilter(field, value, operator, index) {
     // operator options:
     // - in: matches if in value array
-    // ie filter[0][status][$in]=Waiting Queue,Pending Notes
-    // created with .withFilter('status', ['Waiting Queue', 'Pending Notes'], 'in')
     // - dateRange: matches if witin date range
-    // ie filter[0][date_entered][$dateRange]=last_7_days
-    // created with .withFilter('date_entered', 'last_7_days', 'dateRange')
     // - starts: matches if starts with value
-    // ie filter[0][last_name][$starts]=Sm
     // created with .withFilter('last_name', 'Sm', 'starts')
-    // increment index to stack multiple filters without colliding or overwriting
+    if (index === undefined) {
+      // find all existing filter indices
+      const indices = Object.keys(this.query || {})
+        .map((key) => key.match(/^filter\[(\d+)\]/))
+        .filter((match) => match)
+        .map((match) => parseInt(match[1]));
+
+      // use the next index, or 0 if none exist
+      // this prevents collision/overwriting filters
+      index = indices.length > 0 ? Math.max(...indices) + 1 : 0;
+    }
+
     let key = `filter[${index}][${field}]`;
     if (operator) {
       const op = operator.startsWith("$") ? operator : `$${operator}`;
