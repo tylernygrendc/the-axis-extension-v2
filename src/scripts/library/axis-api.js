@@ -32,6 +32,17 @@ const RequestExtensions = {
     return this;
   },
   withFilter(field, value, operator, index = 0) {
+    // operator options:
+    // - in: matches if in value array
+    // ie filter[0][status][$in]=Waiting Queue,Pending Notes
+    // created with .withFilter('status', ['Waiting Queue', 'Pending Notes'], 'in')
+    // - dateRange: matches if witin date range
+    // ie filter[0][date_entered][$dateRange]=last_7_days
+    // created with .withFilter('date_entered', 'last_7_days', 'dateRange')
+    // - starts: matches if starts with value
+    // ie filter[0][last_name][$starts]=Sm
+    // created with .withFilter('last_name', 'Sm', 'starts')
+    // increment index to stack multiple filters without colliding or overwriting
     let key = `filter[${index}][${field}]`;
     if (operator) {
       const op = operator.startsWith("$") ? operator : `$${operator}`;
@@ -807,4 +818,3 @@ const backOfficeAPI = {
     }
   }
 });
-
