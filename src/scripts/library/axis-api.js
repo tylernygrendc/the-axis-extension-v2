@@ -1,4 +1,33 @@
 // every front office API
+const BaseRequestGetters = {
+  get fetchRequest() {
+    const queryParams = this.query ? new URLSearchParams(this.query).toString() : "";
+    return `${this.url}${queryParams ? "?" + queryParams : ""}`;
+  },
+  get fetchOptions() {
+    const options = {
+      method: this.method,
+      timeout: this.timeout || 180000,
+      credentials: this.credentials || "include",
+    };
+    if (this.method === "POST" && this.body && typeof this.body === "object") {
+      options.body = new URLSearchParams(this.body).toString();
+    }
+    return options;
+  },
+  get bulkRequest() {
+    return {
+      ...this.fetchOptions,
+      url: `${this.fetchRequest.split(/(?=v11)/gi)[1] || this.fetchRequest}`,
+    };
+  },
+};
+
+function decorateRequest(req) {
+  if (!req || typeof req !== "object") return req;
+  return Object.defineProperties(req, Object.getOwnPropertyDescriptors(BaseRequestGetters));
+}
+
 const frontOfficeAPI = {
   login: (username = "", password = "") => {
     return {
@@ -22,27 +51,7 @@ const frontOfficeAPI = {
       query: {
         platform: "base",
       },
-      get fetchRequest() {
-        return `${this.url}${this.hasOwn(query) ? "?" += new URLSearchParams(this.query) : ""}`;
-      },
-      get fetchOptions() {
-        const options = {
-          method: this.method,
-          timeout: this.timeout || 180000,
-          credentials: this.credentials || "include"
-        }
-        if(this.method === "POST" && typeof this.body === 'object' ) {
-          options.body = new URLSearchParams(this.body).toString();
-        }
-        return options;
-      },
-      get bulkRequest() {
-        return {
-          ...this.fetchOptions,
-          url: `${this.fetchRequest.split(/(?=v11)/gi)[1] || this.fetchRequest}`,
-        };
-      },
-    }
+    };
   },
   refresh: (refreshToken) => {
     return {
@@ -771,3 +780,13 @@ const backOfficeAPI = {
     };
   },
 };
+
+[frontOfficeAPI, backOfficeAPI].forEach((api) => {
+  for (const key in api) {
+    if (typeof api[key] === "function") {
+      const original = api[key];
+      api[key] = (...args) => decorateRequest(original(...args));
+    }
+  }
+});
+
