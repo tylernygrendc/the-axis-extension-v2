@@ -1,8 +1,14 @@
 // every front office API
-const BaseRequestGetters = {
+const RequestExtensions = {
   get fetchRequest() {
-    const queryParams = this.query ? new URLSearchParams(this.query).toString() : "";
-    return `${this.url}${queryParams ? "?" + queryParams : ""}`;
+    const params = new URLSearchParams();
+    if (this.query) {
+      for (const [key, value] of Object.entries(this.query)) {
+        params.append(key, Array.isArray(value) ? value.join(",") : value);
+      }
+    }
+    const queryStr = params.toString();
+    return `${this.url}${queryStr ? "?" + queryStr : ""}`;
   },
   get fetchOptions() {
     const options = {
@@ -21,11 +27,23 @@ const BaseRequestGetters = {
       url: `${this.fetchRequest.split(/(?=v11)/gi)[1] || this.fetchRequest}`,
     };
   },
+  withQuery(newQuery) {
+    this.query = { ...(this.query || {}), ...newQuery };
+    return this;
+  },
+  withFilter(field, value, operator, index = 0) {
+    let key = `filter[${index}][${field}]`;
+    if (operator) {
+      const op = operator.startsWith("$") ? operator : `$${operator}`;
+      key += `[${op}]`;
+    }
+    return this.withQuery({ [key]: value });
+  },
 };
 
 function decorateRequest(req) {
   if (!req || typeof req !== "object") return req;
-  return Object.defineProperties(req, Object.getOwnPropertyDescriptors(BaseRequestGetters));
+  return Object.defineProperties(req, Object.getOwnPropertyDescriptors(RequestExtensions));
 }
 
 const frontOfficeAPI = {
@@ -184,12 +202,12 @@ const frontOfficeAPI = {
       query: {
         view: "list",
         erased_fields_: false,
-        "filter%5B1%5D%5Bdate_entered%5D%5B%24dateRange%5D": "today",
-        "filter%5B2%5D%5Btj_clinics_tj_visits_1tj_clinics_ida%5D": `${clinicId}`,
+        "filter[1][date_entered][$dateRange]": "today",
+        "filter[2][tj_clinics_tj_visits_1tj_clinics_ida]": `${clinicId}`,
         max_num: 300,
       },
       queryOptions: {
-        "filter%5B0%5D%5Bstatus%5D": ["Waiting Queue", "Pending Notes", "Completed"],
+        "filter[0][status]": ["Waiting Queue", "Pending Notes", "Completed"],
       },
       credentials: "include",
     };
@@ -215,7 +233,7 @@ const frontOfficeAPI = {
       url: `https://axis.thejoint.com/rest/v11_24/Contacts/search_patient`,
       credentials: "include",
       query: {
-        "filter%5Bphone_mobile%5D": `${patientPhone}`,
+        "filter[phone_mobile]": `${patientPhone}`,
       },
     };
   },
@@ -231,11 +249,11 @@ const frontOfficeAPI = {
       query: {
         erased_fields: true,
         max_num: 5,
-        order_by: ["date_entered%3Adesc"],
+        order_by: ["date_entered:desc"],
       },
       queryOptions: {
         view: ["subpanel-for-contacts-contacts_tj_visits_1", "record", "preview", "list"],
-        "filter%5B0%5D%5Bstatus%5D": ["Completed", "Cancelled", "Waiting Queue", "Pending"],
+        "filter[0][status]": ["Completed", "Cancelled", "Waiting Queue", "Pending"],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -252,7 +270,7 @@ const frontOfficeAPI = {
       query: {
         erased_fields: true,
         max_num: 5,
-        order_by: ["date_entered%3Adesc"],
+        order_by: ["date_entered:desc"],
       },
       queryOptions: {
         view: ["subpanel-for-contacts-contacts_tj_purchases_1", "record", "preview", "list"],
@@ -272,7 +290,7 @@ const frontOfficeAPI = {
       query: {
         erased_fields: true,
         max_num: 5,
-        "filter%5B0%5D%5Bis_incorrect_c%5D": true,
+        "filter[0][is_incorrect_c]": true,
       },
       queryOptions: {
         view: ["subpanel-for-contacts-contacts_tj_purchases_1", "record", "preview", "list"],
@@ -292,7 +310,7 @@ const frontOfficeAPI = {
       query: {
         erased_fields: true,
         max_num: 5,
-        order_by: ["status%3Adesc"],
+        order_by: ["status:desc"],
       },
       queryOptions: {
         view: ["subpanel-for-contacts-all_tasks"],
@@ -312,7 +330,7 @@ const frontOfficeAPI = {
       query: {
         erased_fields: true,
         max_num: 5,
-        order_by: ["date_entered%3Adesc"],
+        order_by: ["date_entered:desc"],
       },
       queryOptions: {
         view: ["subpanel-for-contacts-contacts_tj_officenotes_1", "record", "preview", "list"],
@@ -351,7 +369,7 @@ const frontOfficeAPI = {
       query: {
         erased_fields: true,
         max_num: 5,
-        order_by: ["date_modified%3Adesc"],
+        order_by: ["date_modified:desc"],
       },
       queryOptions: {
         view: ["subpanel-for-contacts-contacts_tj_officenotes_1", "record", "preview", "list"],
@@ -607,13 +625,13 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/create-complaints`,
       body: {
-        "data%5B0%5D%5BvisitId%5D": `${visitId}`,
-        "data%5B0%5D%5BcomplaintName%5D": `${complaintName}`, // string
-        "data%5B0%5D%5Bstatus%5D": `${status}`, // "Active"
-        "data%5B0%5D%5BpatientId%5D": `${patientId}`,
-        "data%5B0%5D%5Bsame_better_worse%5D": `${progress}`, // "same", "better", "worse"
-        "data%5B0%5D%5Bdescription%5D": `${painScale}`, // pain scale 0 - 10
-        "data%5B0%5D%5Bfrequency%5D": `${frequency}`, // ">75%", "50-75%", "25-50%", "<25%"
+        "data[0][visitId]": `${visitId}`,
+        "data[0][complaintName]": `${complaintName}`, // string
+        "data[0][status]": `${status}`, // "Active"
+        "data[0][patientId]": `${patientId}`,
+        "data[0][same_better_worse]": `${progress}`, // "same", "better", "worse"
+        "data[0][description]": `${painScale}`, // pain scale 0 - 10
+        "data[0][frequency]": `${frequency}`, // ">75%", "50-75%", "25-50%", "<25%"
         visit_id: `${visitId}`,
         patient_id: `${patientId}`,
       },
@@ -629,9 +647,9 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/delete-complaint`,
       body: {
-        "data%5BcomplaintId%5B": `${complaintId}`,
-        "data%5Breason_closed%5D": `${reason}`, // "care", "naturally", "other_care", "added_in_error", "other"
-        "data%5Bother_reason%5D": `${reasonText}`,
+        "data[complaintId[": `${complaintId}`,
+        "data[reason_closed]": `${reason}`, // "care", "naturally", "other_care", "added_in_error", "other"
+        "data[other_reason]": `${reasonText}`,
       },
       credentials: "include",
     };
@@ -645,13 +663,13 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/create-treatment`,
       body: {
-        "data%5B0%5D%5BpatientId%5D": `${patientId}`,
-        "data%5BtreatmentItems%5D%5B0%5D%5Bduration%5D": `${weeksInPlan}`,
-        "data%5BtreatmentItems%5D%5B0%5D%5Bfrequency%5D": `${visitsPerWeek}`,
-        "data%5BtreatmentItems%5D%5B0%5D%5Bsort%5D": 0,
-        "data%5Bsessions%5D": `${visitsPerWeek * weeksInPlan}`,
-        "data%5BweeksLength%5D": `${weeksInPlan}`,
-        "data%5B0%5D%5BvisitId%5D": `${visitId}`,
+        "data[0][patientId]": `${patientId}`,
+        "data[treatmentItems][0][duration]": `${weeksInPlan}`,
+        "data[treatmentItems][0][frequency]": `${visitsPerWeek}`,
+        "data[treatmentItems][0][sort]": 0,
+        "data[sessions]": `${visitsPerWeek * weeksInPlan}`,
+        "data[weeksLength]": `${weeksInPlan}`,
+        "data[0][visitId]": `${visitId}`,
         patient_id: `${patientId}`,
       },
       credentials: "include",
@@ -667,10 +685,10 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/create-diagnostic`,
       body: {
-        "data%5B0%5D%5BvisitId%5D": `${visitId}`,
-        "data%5B0%5D%5BregularCode%5D": "Other",
-        "data%5B0%5D%5BotherCode%5D": `${code}`,
-        "data%5B0%5D%5BotherDesc%5D": `${description}`,
+        "data[0][visitId]": `${visitId}`,
+        "data[0][regularCode]": "Other",
+        "data[0][otherCode]": `${code}`,
+        "data[0][otherDesc]": `${description}`,
       },
       credentials: "include",
     };
@@ -696,8 +714,8 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/add-soap-note`,
       body: {
-        "data%5B0%5D%5BvisitId%5D": `${visitId}`,
-        "&data%5Bnotes%5D": `${noteText}`,
+        "data[0][visitId]": `${visitId}`,
+        "&data[notes]": `${noteText}`,
       },
       credentials: "include",
     };
@@ -711,9 +729,9 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/load-soap-notes`,
       body: {
-        "data%5B0%5D%5BvisitId%5D": `${visitId}`,
-        "data%5Boffset%5D": `${maxNum}`,
-        "data%5BmaxNum%5D": `${offset}`,
+        "data[0][visitId]": `${visitId}`,
+        "data[offset]": `${maxNum}`,
+        "data[maxNum]": `${offset}`,
       },
       credentials: "include",
     };
@@ -767,14 +785,14 @@ const backOfficeAPI = {
       timeout: 180000,
       url: `https://backoffice.thejoint.com/send-home-instruction`,
       body: {
-        "data%5Bnecknupperbackex%5D": neckStretches,
-        "data%5Bnecknupperbackstretches%5D": neckExercises,
-        "data%5Bposturalex%5D": posturalExercises,
-        "data%5Bcoremuscleex%5D": coreExercises,
-        "data%5Blumbarex%5D": backExercises,
-        "data%5Blumbarstretches%5D": backStretches,
-        "data%5Bhipstretches%5D": hipStretches,
-        "data%5Bpatient_id%5D": `${patientId}`,
+        "data[necknupperbackex]": neckStretches,
+        "data[necknupperbackstretches]": neckExercises,
+        "data[posturalex]": posturalExercises,
+        "data[coremuscleex]": coreExercises,
+        "data[lumbarex]": backExercises,
+        "data[lumbarstretches]": backStretches,
+        "data[hipstretches]": hipStretches,
+        "data[patient_id]": `${patientId}`,
       },
       credentials: "include",
     };
