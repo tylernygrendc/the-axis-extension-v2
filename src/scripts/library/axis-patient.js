@@ -8,22 +8,49 @@ export class Patient {
   //* get any axis patient by patient id
   static async fromId(id = "") {
     // define the apis to be used
-    // TODO, tune maxNum
-    const requests = [
-      frontOfficeAPI.getPatientById(id),
-      frontOfficeAPI.getVisitsByPatientId(id),
-      frontOfficeAPI.getPurchasesByPatientId(id),
-      frontOfficeAPI.getDocumentsByPatientId(id),
-      frontOfficeAPI.getTasksByPatientId(id),
-      frontOfficeAPI.getNotesByPatientId(id),
-      frontOfficeAPI.getRequestsByPatientId(id),
-    ];
+    const requests = {
+      patient: frontOfficeAPI.getPatientById(id), // TODO: limit fields maybe
+      visitList: frontOfficeAPI
+        .getVisitsByPatientId(id)
+        .withQuery({ max_num: 5 })
+        .withFilter(
+          "date_entered",
+          [
+            new Date(
+              new Date().setMonth(new Date().getMonth - 3),
+            ).toISOString(),
+            new Date().toISOString(),
+          ],
+          "dateBetween",
+        )
+        .withFilter("status", "Completed"),
+      examList: frontOfficeAPI
+        .getVisitsByPatientId(id)
+        .withQuery({ max_num: 5 })
+        .withFilter("visit_type", [2, 3], "in")
+        .withFilter("status", "Completed"),
+      purchaseList: frontOfficeAPI
+        .getPurchasesByPatientId(id)
+        .withQuery({ max_num: 5 }),
+      documentList: frontOfficeAPI
+        .getDocumentsByPatientId(id)
+        .withQuery({ max_num: 5 }),
+      taskList: frontOfficeAPI
+        .getTasksByPatientId(id)
+        .withQuery({ max_num: 5 }),
+      noteList: frontOfficeAPI
+        .getNotesByPatientId(id)
+        .withQuery({ max_num: 5 }),
+      requestList: frontOfficeAPI
+        .getRequestsByPatientId(id)
+        .withQuery({ max_num: 5 }),
+    };
     // prepare requests array for bulk fetch
-    // TODO expand usage of bulkRequest in axis-api.js
-    const bulkRequests = requests.map((request) => request.bulkRequest);
-    // store the output names in matching order
-    // TODO put create this field in axis-api.js
-    const outputName = requests.map((request) => request.outputName);
+    const bulkRequests = Object.values(requests).map(
+      (request) => request.bulkRequest,
+    );
+    // store bulk request keys
+    const bulkRequestKeys = Object.keys(requests);
     // attempt bulk fetch
     let responseList = await frontOfficeBulkFetch(bulkRequests);
     // parse response
@@ -38,7 +65,9 @@ export class Patient {
     responseList.forEach((response, i) => {
       // most are added to Patient as a list
       if (i) {
-        Object.assign(axisPatientObject, { [outputName[i]]: response.contents });
+        Object.assign(axisPatientObject, {
+          [bulkRequestKeys[i]]: response.contents,
+        });
         // the first response content object is added directly to Patient
       } else {
         Object.assign(axisPatientObject, response.contents[0]);
@@ -66,7 +95,10 @@ export class Patient {
   }
   get hasBirthday() {
     const dob = new Date(this.birthdate).setFullYear(new Date().getFullYear());
-    const daysToBirthday = Math.ceil(Math.abs(new Date(dob).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    const daysToBirthday = Math.ceil(
+      Math.abs(new Date(dob).getTime() - new Date().getTime()) /
+        (1000 * 60 * 60 * 24),
+    );
     return daysToBirthday <= 7 ? true : false;
   }
   get hasHSA() {
@@ -76,44 +108,85 @@ export class Patient {
     return this.see_notes;
   }
   get hasTask() {
-    // TODO: fix, defaults to false
-    return false;
+    return this.taskList.some((task) => task.status != "Completed");
   }
   get hasDoNotCall() {
     return this.do_not_call;
   }
   get hasDoNotAdjust() {
-    // TODO: fix, defaults to false
-    return false;
-  }
-  async examList() {
-    // TODO fix, defaults to false
-    return false;
+    return this.visitList[0].has_do_not_adjust;
   }
   async previousExam() {
-    // TODO check if the exam has already been stored
-    let exam = this.visitList.find((visit) => visit.visit_type != 1 && visit.status === "Completed");
-    const api = frontOfficeAPI.getPDFVisitsByPatientId(
-      this.id,
-      new Date(exam.date_entered).setHours(0, 0, 0, 0),
-      new Date(exam.date_entered).setHours(23, 59, 59, 999),
-    );
-    let response = await frontOfficeFetch(api.fetchRequest, api.fetchOptions);
-    if (response.ok) response = parseSOAPNote(await response.text());
-    return Object.assign(exam, response);
+    const previousExam = this.visitList.find((visit) => visit.visit_type === 3);
+    if (previousExam) {
+      return Object.assign(previousExam, parseSOAP(SOAPText(previousExam)));
+    } else {
+      // exam could not be found
+    }
   }
   async previousVisit() {
-    // TODO add after refining above, same as above except find() criteria
+    const previousVisit = this.visitList[0];
+    if (previousVisit) {
+      return Object.assign(previousVisit, parseSOAP(SOAPText(previousVisit)));
+    } else {
+      // visit could not be found
+    }
   }
 }
 
-function parseSOAPNote(text) {
+async function parseSOAP(visit) {
+  const text = await SOAPText(visit);
+  if (text) {
+    return {
+      diagnosisList: parseDiagnosisFromText(text),
+      procedureList: parseProceduresFromText(text),
+      problemList: parseProblemsFromText(text),
+    };
+  } else {
+    //! there is no text or an error occured
+  }
+}
+
+async function SOAPText(visit) {
+  const api = frontOfficeAPI.getPDFVisitsByPatientId(
+    visit.id,
+    new Date(exam.date_entered).setHours(0, 0, 0, 0),
+    new Date(exam.date_entered).setHours(23, 59, 59, 999),
+  );
+  let response = await frontOfficeFetch(api.fetchRequest, api.fetchOptions);
+  if (response.ok) {
+    return await response.text();
+  } else {
+    return "";
+  }
+}
+
+// get extra note/treatment that isn't part of the main object
+function parseDiagnosisFromText(text) {
   // filter for diagnosis codes
-  // this could be limited to G, M, R, and S codes, probably
-  /[A-Z]{1}[0-9]{2}\.[A-Z0-9]*/gi;
-  // filter for CPT codes
-  // this should match all codes that axis will output
-  /[89]{2}[0-9]{3}/gi;
-  // TODO create a cpt/icd lookup for all possible *chiropractic* codes
-  // TODO write logic to default to M99.XX, M62.89, and/or other common codes based on known findings
+  const diagnosisList = [];
+  for (const code of text.match(/[GMRS]{1}[0-9]{2}\.[A-Z0-9]*/gi)) {
+    diagnosisList.push(ICD.fromCode(code));
+  }
+  return diagnosisList;
+}
+
+function parseProceduresFromText(text) {
+  // filter for procedure codes
+  const procedureList = [];
+  for (const code of text.match(/[789]{2}[0-9]{3}/g)) {
+    procedureList.push(CPT.fromCode(code));
+  }
+  return procedureList;
+}
+
+function parseProblemsFromText(text) {
+  const problemList = [];
+  // TODO test this regex, maybe add severity lookup
+  for (const problem of text.match(
+    /(?![:\.][\n\f\t\s])[a-z\s]*(?=\srating\s))/gi,
+  )) {
+    problemList.push(problem);
+  }
+  return problemList;
 }
