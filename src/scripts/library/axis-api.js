@@ -1,4 +1,4 @@
-// every front office API
+// methods applied to all front office and back office api methods
 const RequestExtensions = {
   get fetchRequest() {
     const params = new URLSearchParams();
@@ -31,6 +31,10 @@ const RequestExtensions = {
     this.query = { ...(this.query || {}), ...newQuery };
     return this;
   },
+  withBody(newBody) {
+    this.body = { ...(this.body || {}), ...newBody };
+    return this;
+  },
   withFilter(field, value, operator, index) {
     // operator options:
     // - in: matches if in value array
@@ -60,9 +64,13 @@ const RequestExtensions = {
 
 function decorateRequest(req) {
   if (!req || typeof req !== "object") return req;
-  return Object.defineProperties(req, Object.getOwnPropertyDescriptors(RequestExtensions));
+  return Object.defineProperties(
+    req,
+    Object.getOwnPropertyDescriptors(RequestExtensions),
+  );
 }
 
+// every front office api
 const frontOfficeAPI = {
   login: (username = "", password = "") => {
     return {
@@ -145,7 +153,8 @@ const frontOfficeAPI = {
   getAuthorizedClinics: () => {
     return {
       category: "user",
-      returnDescription: "an object listing the key/name pairs of the clinic(s) a user is authorized for",
+      returnDescription:
+        "an object listing the key/name pairs of the clinic(s) a user is authorized for",
       usage: "prompt the user to select their current clinic",
       method: "GET",
       timeout: 180000,
@@ -211,7 +220,8 @@ const frontOfficeAPI = {
   getQueue: (clinicId) => {
     return {
       category: "user",
-      returnDescription: "an array representing seen and/or waiting patients up to max_num",
+      returnDescription:
+        "an array representing seen and/or waiting patients up to max_num",
       usage: "",
       method: "GET",
       timeout: 180000,
@@ -269,8 +279,18 @@ const frontOfficeAPI = {
         order_by: ["date_entered:desc"],
       },
       queryOptions: {
-        view: ["subpanel-for-contacts-contacts_tj_visits_1", "record", "preview", "list"],
-        "filter[0][status]": ["Completed", "Cancelled", "Waiting Queue", "Pending"],
+        view: [
+          "subpanel-for-contacts-contacts_tj_visits_1",
+          "record",
+          "preview",
+          "list",
+        ],
+        "filter[0][status]": [
+          "Completed",
+          "Cancelled",
+          "Waiting Queue",
+          "Pending",
+        ],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -290,7 +310,12 @@ const frontOfficeAPI = {
         order_by: ["date_entered:desc"],
       },
       queryOptions: {
-        view: ["subpanel-for-contacts-contacts_tj_purchases_1", "record", "preview", "list"],
+        view: [
+          "subpanel-for-contacts-contacts_tj_purchases_1",
+          "record",
+          "preview",
+          "list",
+        ],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -310,7 +335,12 @@ const frontOfficeAPI = {
         "filter[0][is_incorrect_c]": true,
       },
       queryOptions: {
-        view: ["subpanel-for-contacts-contacts_tj_purchases_1", "record", "preview", "list"],
+        view: [
+          "subpanel-for-contacts-contacts_tj_purchases_1",
+          "record",
+          "preview",
+          "list",
+        ],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -338,7 +368,8 @@ const frontOfficeAPI = {
   getNotesByPatientId: (patientId) => {
     return {
       category: "patient",
-      returnDescription: "an array of staff notes (not medical records) up to max_num",
+      returnDescription:
+        "an array of staff notes (not medical records) up to max_num",
       usage: "access patient account details",
       method: "GET",
       timeout: 180000,
@@ -350,7 +381,12 @@ const frontOfficeAPI = {
         order_by: ["date_entered:desc"],
       },
       queryOptions: {
-        view: ["subpanel-for-contacts-contacts_tj_officenotes_1", "record", "preview", "list"],
+        view: [
+          "subpanel-for-contacts-contacts_tj_officenotes_1",
+          "record",
+          "preview",
+          "list",
+        ],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -358,7 +394,8 @@ const frontOfficeAPI = {
   getRequestsByPatientId: (patientId) => {
     return {
       category: "patient",
-      returnDescription: "an array of patient requests (for account actions) up to max_num",
+      returnDescription:
+        "an array of patient requests (for account actions) up to max_num",
       usage: "access patient account details",
       method: "GET",
       timeout: 180000,
@@ -369,7 +406,12 @@ const frontOfficeAPI = {
         max_num: 5,
       },
       queryOptions: {
-        view: ["subpanel-for-contacts-contacts_tj_officenotes_1", "record", "preview", "list"],
+        view: [
+          "subpanel-for-contacts-contacts_tj_officenotes_1",
+          "record",
+          "preview",
+          "list",
+        ],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -389,7 +431,12 @@ const frontOfficeAPI = {
         order_by: ["date_modified:desc"],
       },
       queryOptions: {
-        view: ["subpanel-for-contacts-contacts_tj_officenotes_1", "record", "preview", "list"],
+        view: [
+          "subpanel-for-contacts-contacts_tj_officenotes_1",
+          "record",
+          "preview",
+          "list",
+        ],
         fields: [], // string, can be any key(s) on the object
       },
     };
@@ -476,7 +523,8 @@ const frontOfficeAPI = {
     return {
       category: "patient",
       name: "note",
-      returnDescription: "an object representing single staff note (not medical record)",
+      returnDescription:
+        "an object representing single staff note (not medical record)",
       method: "GET",
       timeout: 180000,
       url: `https://axis.thejoint.com/rest/v11_24/Notes/${noteId}`,
@@ -532,7 +580,8 @@ const frontOfficeAPI = {
   getPDFVisitsByPatientId: (patientId, startDate, endDate) => {
     return {
       category: "patient",
-      returnDescription: "treatment notes from the selected range in a pdf format",
+      returnDescription:
+        "treatment notes from the selected range in a pdf format",
       method: "GET",
       timeout: 180000,
       url: `https://axis.thejoint.com/rest/v11_24/GotenbergPdfManager/download`,
@@ -575,8 +624,10 @@ const frontOfficeAPI = {
   ) => {
     return {
       category: "patient",
-      returnDescription: "an array containing the patient object and file object",
-      usage: "link a file upload to a patient's record or update its metadata (ie is_incorrect_c: true)",
+      returnDescription:
+        "an array containing the patient object and file object",
+      usage:
+        "link a file upload to a patient's record or update its metadata (ie is_incorrect_c: true)",
       method: "POST",
       timeout: 180000,
       url: `https://axis.thejoint.com/rest/v11_24/Contacts/${patientId}/link/documents`,
@@ -601,8 +652,9 @@ const frontOfficeAPI = {
   },
 };
 
+// every back office api
 const backOfficeAPI = {
-  login: (username, password, csrfToken, inClinic) => {
+  login: (csrfToken, username, password, status) => {
     return {
       category: "auth",
       returnDescription: null,
@@ -614,7 +666,7 @@ const backOfficeAPI = {
         _token: `${csrfToken}`,
         user_name: `${username}`,
         password: `${password}`,
-        doctor_status: inClinic ? "In Clinic" : "Out of Clinic",
+        doctor_status: `${status}`,
       },
       credentials: "include",
     };
@@ -633,7 +685,15 @@ const backOfficeAPI = {
       credentials: "include",
     };
   },
-  addComplaint: (patientId, visitId, complaintName, painScale, frequency, progress, status) => {
+  addComplaint: (
+    patientId,
+    visitId,
+    complaintName,
+    painScale,
+    frequency,
+    progress,
+    status,
+  ) => {
     return {
       category: "patient",
       returnDescription: null,
@@ -740,7 +800,8 @@ const backOfficeAPI = {
   getAppendedNotes: (visitId, maxNum = 20, offset = 0) => {
     return {
       category: "patient",
-      returnDescription: "an array of appended notes up to maxNum, starting from a given offset",
+      returnDescription:
+        "an array of appended notes up to maxNum, starting from a given offset",
       usage: "get all appended notes",
       method: "POST",
       timeout: 180000,
