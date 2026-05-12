@@ -1,13 +1,18 @@
 // ICD codes commonly used by chiropractors at The Joint Chiropractic
-// TODO: add meralgia paresthetica and muscle contracture
 const ICD_Map = Object.freeze({
   G: {
     44: {
       name: "Tension-type headache",
       201: { name: "unspecified, intractable", separator: ", " },
       209: { name: "unspecified, not intractable", separator: ", " },
-      211: { name: "Episodic tension-type headache, intractable", replace: true },
-      219: { name: "Episodic tension-type headache, not intractable", replace: true },
+      211: {
+        name: "Episodic tension-type headache, intractable",
+        replace: true,
+      },
+      219: {
+        name: "Episodic tension-type headache, not intractable",
+        replace: true,
+      },
       221: { name: "Chronic tension-type headache, ", replace: true },
       86: { name: "Cervicogenic headache", replace: true },
     },
@@ -18,7 +23,12 @@ const ICD_Map = Object.freeze({
     57: {
       1: {
         name: "Meralgia paresthetica",
-        regions: { 0: "unspecified lower limb", 1: "right lower limb", 2: "left lower limb", 3: "bilateral lower limbs" },
+        regions: {
+          0: "unspecified lower limb",
+          1: "right lower limb",
+          2: "left lower limb",
+          3: "bilateral lower limbs",
+        },
         regionSeparator: ", ",
       },
     },
@@ -29,13 +39,41 @@ const ICD_Map = Object.freeze({
         name: "Contracture of joint",
         regionSeparator: ", ",
         0: { name: "unspecified site" },
-        1: { regions: { 1: "right shoulder", 2: "left shoulder", 9: "unspecified shoulder" } },
-        2: { regions: { 1: "right elbow", 2: "left elbow", 9: "unspecified elbow" } },
-        3: { regions: { 1: "right wrist", 2: "left wrist", 9: "unspecified wrist" } },
-        4: { regions: { 1: "right hand", 2: "left hand", 9: "unspecified hand" } },
+        1: {
+          regions: {
+            1: "right shoulder",
+            2: "left shoulder",
+            9: "unspecified shoulder",
+          },
+        },
+        2: {
+          regions: {
+            1: "right elbow",
+            2: "left elbow",
+            9: "unspecified elbow",
+          },
+        },
+        3: {
+          regions: {
+            1: "right wrist",
+            2: "left wrist",
+            9: "unspecified wrist",
+          },
+        },
+        4: {
+          regions: { 1: "right hand", 2: "left hand", 9: "unspecified hand" },
+        },
         5: { regions: { 1: "right hip", 2: "left hip", 9: "unspecified hip" } },
-        6: { regions: { 1: "right knee", 2: "left knee", 9: "unspecified knee" } },
-        7: { regions: { 1: "right ankle/foot", 2: "left ankle/foot", 9: "unspecified ankle/foot" } },
+        6: {
+          regions: { 1: "right knee", 2: "left knee", 9: "unspecified knee" },
+        },
+        7: {
+          regions: {
+            1: "right ankle/foot",
+            2: "left ankle/foot",
+            9: "unspecified ankle/foot",
+          },
+        },
         9: { name: "other specified joint" },
       },
     },
@@ -84,11 +122,21 @@ const ICD_Map = Object.freeze({
       regionSeparator: ", ",
       1: {
         name: "Intervertebral disc disorders with radiculopathy",
-        regions: { 4: "thoracic region", 5: "thoracolumbar region", 6: "lumbar region", 7: "lumbosacral region" },
+        regions: {
+          4: "thoracic region",
+          5: "thoracolumbar region",
+          6: "lumbar region",
+          7: "lumbosacral region",
+        },
       },
       2: {
         name: "Other intervertebral disc displacement",
-        regions: { 4: "thoracic region", 5: "thoracolumbar region", 6: "lumbar region", 7: "lumbosacral region" },
+        regions: {
+          4: "thoracic region",
+          5: "thoracolumbar region",
+          6: "lumbar region",
+          7: "lumbosacral region",
+        },
       },
     },
     54: {
@@ -109,13 +157,51 @@ const ICD_Map = Object.freeze({
         name: "Contracture of muscle",
         regionSeparator: ", ",
         0: { name: "unspecified site" },
-        1: { regions: { 1: "right shoulder", 2: "left shoulder", 9: "unspecified shoulder" } },
-        2: { regions: { 1: "right upper arm", 2: "left upper arm", 9: "unspecified upper arm" } },
-        3: { regions: { 1: "right forearm", 2: "left forearm", 9: "unspecified forearm" } },
-        4: { regions: { 1: "right hand", 2: "left hand", 9: "unspecified hand" } },
-        5: { regions: { 1: "right thigh", 2: "left thigh", 9: "unspecified thigh" } },
-        6: { regions: { 1: "right lower leg", 2: "left lower leg", 9: "unspecified lower leg" } },
-        7: { regions: { 1: "right ankle/foot", 2: "left ankle/foot", 9: "unspecified ankle/foot" } },
+        1: {
+          regions: {
+            1: "right shoulder",
+            2: "left shoulder",
+            9: "unspecified shoulder",
+          },
+        },
+        2: {
+          regions: {
+            1: "right upper arm",
+            2: "left upper arm",
+            9: "unspecified upper arm",
+          },
+        },
+        3: {
+          regions: {
+            1: "right forearm",
+            2: "left forearm",
+            9: "unspecified forearm",
+          },
+        },
+        4: {
+          regions: { 1: "right hand", 2: "left hand", 9: "unspecified hand" },
+        },
+        5: {
+          regions: {
+            1: "right thigh",
+            2: "left thigh",
+            9: "unspecified thigh",
+          },
+        },
+        6: {
+          regions: {
+            1: "right lower leg",
+            2: "left lower leg",
+            9: "unspecified lower leg",
+          },
+        },
+        7: {
+          regions: {
+            1: "right ankle/foot",
+            2: "left ankle/foot",
+            9: "unspecified ankle/foot",
+          },
+        },
         8: { name: "other site" },
         9: { name: "multiple sites" },
       },
@@ -124,20 +210,44 @@ const ICD_Map = Object.freeze({
     },
     70: {
       regionSeparator: ", ",
-      5: { name: "Other bursitis of", regions: { 1: "right knee", 2: "left knee" }, regionSeparator: " " },
-      6: { name: "Trochanteric bursitis", regions: { 1: "right hip", 2: "left hip" }, regionSeparator: ", " },
-      7: { name: "Other bursitis of hip", regions: { 1: "right hip", 2: "left hip" }, regionSeparator: ", " },
+      5: {
+        name: "Other bursitis of",
+        regions: { 1: "right knee", 2: "left knee" },
+        regionSeparator: " ",
+      },
+      6: {
+        name: "Trochanteric bursitis",
+        regions: { 1: "right hip", 2: "left hip" },
+        regionSeparator: ", ",
+      },
+      7: {
+        name: "Other bursitis of hip",
+        regions: { 1: "right hip", 2: "left hip" },
+        regionSeparator: ", ",
+      },
     },
     75: {
-      101: { name: "Unspecified rotator cuff tear or rupture of right shoulder, not specified as traumatic" },
-      102: { name: "Unspecified rotator cuff tear or rupture of left shoulder, not specified as traumatic" },
+      101: {
+        name: "Unspecified rotator cuff tear or rupture of right shoulder, not specified as traumatic",
+      },
+      102: {
+        name: "Unspecified rotator cuff tear or rupture of left shoulder, not specified as traumatic",
+      },
       41: { name: "Impingement syndrome of right shoulder" },
       42: { name: "Impingement syndrome of left shoulder" },
     },
     77: {
       regionSeparator: ", ",
-      0: { name: "Medial epicondylitis", regions: { 1: "right elbow", 2: "left elbow" }, regionSeparator: ", " },
-      1: { name: "Lateral epicondylitis", regions: { 1: "right elbow", 2: "left elbow" }, regionSeparator: ", " },
+      0: {
+        name: "Medial epicondylitis",
+        regions: { 1: "right elbow", 2: "left elbow" },
+        regionSeparator: ", ",
+      },
+      1: {
+        name: "Lateral epicondylitis",
+        regions: { 1: "right elbow", 2: "left elbow" },
+        regionSeparator: ", ",
+      },
     },
     79: {
       601: { name: "Pain in right arm" },
@@ -168,7 +278,11 @@ const ICD_Map = Object.freeze({
   },
   R: {
     "07": { 89: { name: "Other chest pain" } },
-    20: { 1: { name: "Hypoesthesia of skin" }, 2: { name: "Paresthesia of skin" }, 3: { name: "Hyperesthesia" } },
+    20: {
+      1: { name: "Hypoesthesia of skin" },
+      2: { name: "Paresthesia of skin" },
+      3: { name: "Hyperesthesia" },
+    },
     29: { 3: { name: "Abnormal posture" } },
     51: { 9: { name: "Headache, unspecified" } },
     68: { 84: { name: "Jaw pain" } },
@@ -177,7 +291,13 @@ const ICD_Map = Object.freeze({
     13: { 4: { name: "Sprain of ligaments of cervical spine" } },
     23: { 3: { name: "Sprain of ligaments of thoracic spine" } },
     33: { 5: { name: "Sprain of ligaments of lumbar spine" } },
-    63: { 50: { name: "Unspecified sprain of", regions: { 1: "right wrist", 2: "left wrist" }, regionSeparator: " " } },
+    63: {
+      50: {
+        name: "Unspecified sprain of",
+        regions: { 1: "right wrist", 2: "left wrist" },
+        regionSeparator: " ",
+      },
+    },
     93: {
       40: {
         name: "Sprain of unspecified ligament of",
@@ -186,12 +306,19 @@ const ICD_Map = Object.freeze({
       },
     },
     16: { 1: { name: "Strain of muscle, fascia, and tendon of neck" } },
-    29: { "012": { name: "Strain of muscle and tendon of back wall of thorax" } },
-    39: { "012": { name: "Strain of muscle, fascia, and tendon of lower back" } },
+    29: {
+      "012": { name: "Strain of muscle and tendon of back wall of thorax" },
+    },
+    39: {
+      "012": { name: "Strain of muscle, fascia, and tendon of lower back" },
+    },
     46: {
       81: {
         name: "Strain of other muscles, fascia, and tendons of",
-        regions: { 1: "right shoulder/upper arm", 2: "left shoulder/upper arm" },
+        regions: {
+          1: "right shoulder/upper arm",
+          2: "left shoulder/upper arm",
+        },
         regionSeparator: " ",
       },
     },
@@ -224,7 +351,11 @@ const ICD_Map = Object.freeze({
     },
   },
   common: {
-    encounters: { A: "initial encounter", D: "subsequent encounter", S: "sequela" },
+    encounters: {
+      A: "initial encounter",
+      D: "subsequent encounter",
+      S: "sequela",
+    },
   },
 });
 
@@ -273,7 +404,8 @@ export class ICD {
                 description += separator + subMatch.name;
               }
             }
-            if (subMatch.regionSeparator !== undefined) regionSeparator = subMatch.regionSeparator;
+            if (subMatch.regionSeparator !== undefined)
+              regionSeparator = subMatch.regionSeparator;
             if (subMatch.skipEncounter) skipEncounter = true;
             current = subMatch;
             subCode = subCode.substring(len);
@@ -285,7 +417,8 @@ export class ICD {
       }
 
       // 2. Handle regions/sites
-      const detailMap = current.regions || current.sites || catMap.regions || catMap.sites;
+      const detailMap =
+        current.regions || current.sites || catMap.regions || catMap.sites;
       if (detailMap && subCode.length > 0) {
         const key = subCode[0];
         const name = detailMap[key];
@@ -295,7 +428,11 @@ export class ICD {
         }
       }
 
-      if (encounterChar && !skipEncounter && ICD_Map.common.encounters[encounterChar]) {
+      if (
+        encounterChar &&
+        !skipEncounter &&
+        ICD_Map.common.encounters[encounterChar]
+      ) {
         description += ", " + ICD_Map.common.encounters[encounterChar];
       }
     }
