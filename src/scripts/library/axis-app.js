@@ -1,3 +1,4 @@
+import { el, template } from "../modules/element.mjs";
 import {
   backOfficeLogin,
   frontOfficeLogin,
@@ -23,11 +24,8 @@ export class App {
     if (resource === "login") {
       listenForLogin();
     } else {
-      // inject UI
-      if (this.isBackOffice) {
-      } else if (this.isFrontOffice) {
-        // rerender is not needed with page transition in front office
-      }
+      // TODO exclude resources
+      document.body.append(await toolbar());
     }
   }
 }
@@ -49,4 +47,21 @@ function listenForLogin() {
       await frontOfficeLogin(formData.username, formData.password);
     }
   });
+}
+async function toolbar() {
+  try {
+    let response = await fetch(
+      chrome.runtime.getURL("dist/markup/toolbar.html"),
+    );
+    if (response.ok) {
+      const template = template(await response.text());
+      // add functionality
+      return template; // DocumentFragment
+    } else {
+      throw new Error(response.statusText);
+    }
+  } catch (error) {
+    console.error(error);
+    return el(); // Element
+  }
 }

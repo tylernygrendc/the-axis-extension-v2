@@ -1,6 +1,6 @@
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from "pdfjs-dist";
 
-chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (req, sender, sendResponse) => {
   try {
     switch (req.type) {
       case "storage":
@@ -16,7 +16,8 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
               else unexpiredRecords.push({ [key]: record });
             }
             // remove expired records
-            if (expiredRecords.length) chrome.storage[req.location].remove(expiredRecords);
+            if (expiredRecords.length)
+              chrome.storage[req.location].remove(expiredRecords);
             // return unexpired records
             sendResponse(unexpiredRecords);
           });
@@ -39,13 +40,16 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
         // add the oauth token before fetching
         const records = await chrome.storage.sync.get("oauth_token");
         // continue if the token is found
-        if(records?.oauth_token) {
+        if (records?.oauth_token) {
           // add oauth token to every bulk request item if necessary
           if (req.options?.body?.requests) {
-            req.options.body.requests.forEach(request => {
-              request.options = { 
-                ...request.options, 
-                headers: { ...request.options?.headers, "OAuth-Token": records.oauth_token.content } 
+            req.options.body.requests.forEach((request) => {
+              request.options = {
+                ...request.options,
+                headers: {
+                  ...request.options?.headers,
+                  "OAuth-Token": records.oauth_token.content,
+                },
               };
             });
           }
@@ -62,20 +66,22 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
           // handle content based on content type
           const contentType = response.headers.get("content-type") || "";
           // for pdf downloads
-          if (contentType.includes("application/pdf") || req.resource.includes("download=true")) {
+          if (
+            contentType.includes("application/pdf") ||
+            req.resource.includes("download=true")
+          ) {
             result.body = await getPDFText(await response.arrayBuffer());
             sendResponse(result);
-          // for json
+            // for json
           } else if (contentType.includes("application/json")) {
             result.body = await response.json();
-          // for everything else
+            // for everything else
           } else {
             result.body = await response.text();
             sendResponse(result);
           }
         } else {
-          // attempt refresh
-
+          // TODO attempt refresh
         }
     }
   } catch (error) {
@@ -91,7 +97,7 @@ async function getPDFText(arrayBuffer) {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const strings = content.items.map(item => item.str);
+    const strings = content.items.map((item) => item.str);
     fullText += strings.join(" ") + "\n";
   }
   return fullText;

@@ -4,7 +4,11 @@ import { kebabCase } from "./_string.mjs";
 import { safeHTML } from "./_safe.mjs";
 
 export class Listener {
-  constructor(event = "", listener = () => {}, options = { capture: false, once: false }) {
+  constructor(
+    event = "",
+    listener = () => {},
+    options = { capture: false, once: false },
+  ) {
     this.e = event;
     this.f = listener;
     this.o = options;
@@ -17,36 +21,42 @@ export function el(attr = {}) {
   for (const [key, val] of Object.entries(attr)) {
     switch (key) {
       case "aria":
-        for (const [k, v] of Object.entries(coerce.object(val))) el.setAttribute(`aria-${k}`, v);
+        for (const [k, v] of Object.entries(coerce.object(val)))
+          el.setAttribute(`aria-${k}`, v);
         break;
       case "attributes":
-        for (const [k, v] of Object.entries(coerce.object(val))) el.setAttribute(k, v);
+        for (const [k, v] of Object.entries(coerce.object(val)))
+          el.setAttribute(k, v);
         break;
       case "children":
-        for (const child of coerce.array(val)) if (child instanceof Element) el.append(child);
+        for (const child of coerce.array(val))
+          if (child instanceof Element) el.append(child);
         break;
       case "classList":
         for (const className of coerce.array(val)) el.classList.add(className);
         break;
       case "dataset":
-        for (const [k, v] of Object.entries(coerce.object(val))) el.dataset[k] = v;
+        for (const [k, v] of Object.entries(coerce.object(val)))
+          el.dataset[k] = v;
         break;
       case "listeners":
         for (const listener of coerce.array(val)) {
-          if (listener instanceof Listener) el.addEventListener(listener.e, listener.f, listener.o);
+          if (listener instanceof Listener)
+            el.addEventListener(listener.e, listener.f, listener.o);
         }
       case "style":
-        for (const [k, v] of Object.entries(coerce.object(val))) el.style[kebabCase(k)] = val;
+        for (const [k, v] of Object.entries(coerce.object(val)))
+          el.style[kebabCase(k)] = val;
         break;
       default:
         el[key] = val;
         break;
     }
   }
-  return el;
+  return el; // HTMLElement
 }
 export function template(htmlString = "<p>Hello, World!</p>") {
   const template = document.createElement("template");
   template.innerHTML = safeHTML(htmlString);
-  return template.content;
+  return template.content; // DocumentFragment
 }

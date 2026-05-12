@@ -9,7 +9,7 @@ export class Patient {
   static async fromId(id = "") {
     // define the apis to be used
     const requests = {
-      patient: frontOfficeAPI.getPatientById(id), // TODO: limit fields maybe
+      patient: frontOfficeAPI.getPatientById(id), // TODO: limit fields
       visitList: frontOfficeAPI
         .getVisitsByPatientId(id)
         .withQuery({ max_num: 5 })
@@ -29,6 +29,7 @@ export class Patient {
         .withQuery({ max_num: 5 })
         .withFilter("visit_type", [2, 3], "in")
         .withFilter("status", "Completed"),
+      // TODO: filter needed fields/records
       purchaseList: frontOfficeAPI
         .getPurchasesByPatientId(id)
         .withQuery({ max_num: 5 }),
@@ -143,7 +144,7 @@ async function parseSOAP(visit) {
       problemList: parseProblemsFromText(text),
     };
   } else {
-    //! there is no text or an error occured
+    // there is no text or an error occured
   }
 }
 
