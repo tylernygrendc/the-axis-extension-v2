@@ -45,12 +45,14 @@ const appearance = {
     "link",
     "lock",
     "lock_open",
+    "lock_reset",
     "login",
     "logout",
     "menu",
     "menu_open",
     "offline_pin",
     "open_in_new",
+    "payment_card",
     "pending",
     "print",
     "print_disabled",
@@ -71,6 +73,7 @@ const appearance = {
     "troubleshoot",
     "upload",
     "update",
+    "wallet",
     "warning",
   ].sort(),
   output = "material-symbols",
@@ -86,11 +89,22 @@ try {
   res = await res.arrayBuffer();
   writeFileSync(`./dist/fonts/${output}.ttf`, Buffer.from(res));
   if (woff2) {
-    writeFileSync(`./dist/fonts/${output}.woff2`, ttf2woff2(readFileSync(`./dist/fonts/${output}.ttf`)));
+    writeFileSync(
+      `./dist/fonts/${output}.woff2`,
+      ttf2woff2(readFileSync(`./dist/fonts/${output}.ttf`)),
+    );
     unlinkSync(`./dist/fonts/${output}.ttf`);
   }
-  console.log(chalk.greenBright(`\n${output}.${woff2 ? "woff2" : "ttf"} has been successfully updated!\n`));
+  console.log(
+    chalk.greenBright(
+      `\n${output}.${woff2 ? "woff2" : "ttf"} has been successfully updated!\n`,
+    ),
+  );
 } catch (error) {
   console.log(error);
-  console.log(chalk.redBright(`\n${output}.${woff2 ? "woff2" : "ttf"} could not updated.\n`));
+  console.log(
+    chalk.redBright(
+      `\n${output}.${woff2 ? "woff2" : "ttf"} could not updated.\n`,
+    ),
+  );
 }
