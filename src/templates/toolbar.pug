@@ -1,7 +1,42 @@
 nav
-    button(title="", name="tool", value="tasks", aria-expanded="false")
+    // tools
+    button.icon(title="Tasks", name="tool", value="tasks", aria-label="tasks", aria-expanded="false") task_alt
+    button.icon(title="Print Resources", name="tool", value="print", aria-label="print resources", aria-expanded="false") print
+    button.icon(title="Carbon Messages", name="tool", value="messages", aria-label="carbon messages", aria-expanded="false") chat
+    button.icon(title="Schedule", name="tool", value="schedule", aria-label="schedule", aria-expanded="false") today
+    button.icon(title="Billing", name="tool", value="billing", aria-label="billing", aria-expanded="false") payment_card
+    // resources
+    button.icon(name="resource", value="unlock") key_vertical
+    button.icon(name="resource", value="authenticate") lock_reset
+    button.icon(name="resource", value="help") help
+    button.icon(name="resource", value="settings") settings
 dialog
-    section#tasks
+    // reusable sections that appear alongside and/or modify core actions
+    section#patient
+        article.patient-card.dropzone(aria-labelledby="patient-name")
+            header
+                h2#patient-name
+                p.patient-id
+            section.patient-details: dl
+            footer.patient-actions: ul
+        button(type="button", aria-expanded="false") Go to Patient Search
+        - const patientTabs = ["waiting", "pending", "completed"];
+        div(role="tablist", aria-label=""): each tab, i in patientTabs
+            button(role="tab", 
+                type="button", 
+                controls=`${tab}-panel`, 
+                id=`${tab}-tab`, 
+                tabindex=`${i ? "-1" : "0"}`, 
+                aria-selected="false", 
+                data-badge="0") #{tab}
+        // task tabpanels
+        each tab in taskTabs
+            div(role="tabpanel", id=`${tab}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden): ul
+        template#patient-list-item: div
+            p(data-name)
+            button(type="button") Select
+    // core actions
+    section#tasks(aria-label="")
         // task tabs
         - const taskTabs = ["reminders", "follow-ups", "requests", "summaries", "birthdays"];
         div(role="tablist", aria-label=""): each tab, i in taskTabs
@@ -27,19 +62,145 @@ dialog
                             th Text
                             th Call
                     tbody
-                        template#task-row: tr
-                            td(data-patient)
-                            td(data-birthdate)
-                            td(data-phone)
-                            td(data-type)
-                            td(data-task)
-                            td(data-email): button(type="button", name="action", value="email", aria-pressed="false") Send
-                            td(data-text): button(type="button", name="action", value="text", aria-pressed="false") Send
-                            td(data-call): button(type="button", name="action", value="call", aria-pressed="false") Complete
-        section#print
-            form(method="post", action="")
-                input(type="search")
-                button(type="submit")
+        // task row template
+        template#task-row: tr
+            td(data-patient)
+            td(data-birthdate)
+            td(data-phone)
+            td(data-type)
+            td(data-task)
+            td(data-email): button(type="button", name="action", value="email", aria-pressed="false") Send
+            td(data-text): button(type="button", name="action", value="text", aria-pressed="false") Send
+            td(data-call): button(type="button", name="action", value="call", aria-pressed="false") Complete
+    section#print(aria-label="")
+        - const printDocs = ["excuse slip", "superbill", "record release", "wellness review"];
+        ul(aria-label): each doc in printDocs
+            li: button(type="button", name="print", value=`${doc.replace(/\s*/gi,"_")}`) #{doc}
+        // print tabs
+        - const printTabs = [""];
+        div(role="tablist", aria-label=""): each tab, i in printTabs
+            button(role="tab", 
+                type="button", 
+                controls=`${tab}-panel`, 
+                id=`${tab}-tab`, 
+                tabindex=`${i ? "-1" : "0"}`, 
+                aria-selected="false", 
+                data-badge="0") #{tab}
+        // print tabpanels
+        each tab in printTabs
+            div(role="tabpanel", id=`${tab}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden)
+    section#messages(aria-label="")
+        ol(role="log", aria-live="polite")
+        template#entry
+            li: article
+                time(datetime="") 
+                p.body
+        form
+            label Message
+                textarea(name="new-carbon-message", required)
+            button(type="submit") Send
+    section#schedule(aria-label="")
+        - const scheduleTabs = ["bookings", "expected"];
+        div(role="tablist", aria-label=""): each tab, i in scheduleTabs
+            button(role="tab", 
+                type="button", 
+                controls=`${tab}-panel`, 
+                id=`${tab}-tab`, 
+                tabindex=`${i ? "-1" : "0"}`, 
+                aria-selected="false", 
+                data-badge="0") #{tab}
+        // schedule tabpanels
+        each tab in scheduleTabs
+            div(role="tabpanel", id=`${tab}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden)
+        form
+            label First Name
+                input(type="text", name="appt-fname", required)
+            label Last Name
+                input(type="text", name="appt-lname", required)
+            label Phone
+                input(type="tel", name="appt-phone", required)
+            fieldset
+                legend Patient Type
+                ul
+                    li
+                        label
+                            input(type="radio", name="appt-np", value="true")
+                            | New Patient
+                    li
+                        label
+                            input(type="radio", name="appt-np", value="false")
+                            | Established Patient
+            label Appointment Type
+                select(name="appt-type")
+                    option(value="Consultation")
+                    option(value="Report of Findings")
+                    option(value="First Follow-Up")
+                    option(value="New Problem Update")
+                    option(value="Wellness Review")
+                    option(value="Treatment Visit")
+            label Appointment Date
+                input(type="date", name="appt-date")
+            label Appointment Time
+                input(type="time", name="appt-time")
+            fieldset
+                legend Available Appointments
+                ul
+            button(type="submit") Create Appointment
+    section#billing
+        - const billingTabs = ["declined", "reactivations", "expirations"];
+        div(role="tablist", aria-label=""): each tab, i in billingTabs
+            button(role="tab", 
+                type="button", 
+                controls=`${tab}-panel`, 
+                id=`${tab}-tab`, 
+                tabindex=`${i ? "-1" : "0"}`, 
+                aria-selected="false", 
+                data-badge="0") #{tab}
+        // schedule tabpanels
+        each tab in billingTabs
+            div(role="tabpanel", id=`${tab}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden)
+        form
+            label Name on Card
+                input(type="text", name="cc-name", required)
+            label Card Number
+                input(type="text", name="cc-number", required, inputmode="numeric", pattern="[0-9\\\\s]{13,19}")
+            label Expiration Date
+                input(type="text", name="cc-exp", required, placeholder="MM/YY", pattern="(0[1-9]|1[0-2])\\\\/[0-9]{2}")
+            label Security Code (CVV)
+                input(type="text", name="cc-csc", required, inputmode="numeric", minlength="3", maxlength="4")
+            label Postal Code
+                input(type="text", name="cc-zip", required)
+            button(type="submit") Schedule Payment
+    section#authenticate
+        form
+            section(aria-labelledby="axis-authentication")
+                h2#axis-authentication AXIS
+                label Email
+                    input(type="email")
+                label Password
+                    input(type="password")
+            section(aria-labelledby="carbon-authentication")
+                h2#carbon-authentication Carbon
+                label Email
+                    input(type="email")
+                label Password
+                    input(type="password")
+            button(type="submit") Connect
+    
+            
+                
+                
+                
+
+
+        
+                
+
+
+                
+
+
+
         
         
 
