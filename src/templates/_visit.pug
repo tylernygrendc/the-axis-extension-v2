@@ -1,0 +1,100 @@
+section#visit(aria-label="")
+    - const visitTabs = ["examination", "treatment"];
+    div(role="tablist", aria-label=""): each tab, i in visitTabs
+        button(role="tab", 
+            type="button", 
+            controls=`${tab}-panel`, 
+            id=`${tab}-tab`, 
+            tabindex=`${i ? "-1" : "0"}`, 
+            aria-selected="false", 
+            data-badge="0") #{tab}
+    // print tabpanels
+    // examinaiton panel
+    div(role="tabpanel", id=`${visitTabs[0]}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden)
+        div#problem-tabs(role="tablist", aria-label="")
+        template#problem-panel: div(role="tabpanel"): form
+            label Problem
+                input(type="text", name="problem-name")
+            label Date of Onset
+                input(type="text", name="problem-date")
+            label Approximate Date of Onset
+                input(type="checkbox", name="problem-approxdate", value="true")
+            fieldset 
+                legend Suspected Cause
+                ul
+            fieldset
+                legend Site of Pain
+                // hidden input
+                // include svg
+                // specify pin, numbness, tingling
+            label Pain Severity
+                input(type="range", name="problem-severity")
+            fieldset
+                legend Problem Frequency
+                ul
+                    li: label Constant
+                        input(type="radio", name="problem-frequency", value="")
+                    li: label Intermittent
+                        input(type="radio", name="problem-frequency", value="")
+                    li: label Infrequent
+                        input(type="radio", name="problem-frequency", value="")
+                    li: label Nocturnal
+                        input(type="radio", name="problem-frequency", value="")
+            fieldset
+                legend Palliative Factors
+                ul
+            fieldset
+                legend Provocative Factors
+                ul
+            fieldset
+                legend Range of Motion Restriction
+                // hidden input
+                // include svg
+            fieldset
+                legend Orthopedic Findings
+                ul
+            fieldset
+                legend Differential Diagnosis
+                ul
+            button(type="button") Previous
+            button(type="button") Next Problem
+    div(role="tabpanel", id=`${visitTabs[1]}-panel`, aria-labelledby=`${tab}-tab`, tabindex="0", hidden)
+        - const treatmentTabs = ["CMT", "NMR", "MT"];
+        div(role="tablist", aria-label=""): each tab, i in treatmentTabs
+            button(role="tab", 
+                type="button", 
+                controls=`${tab}-panel`, 
+                id=`${tab}-tab`, 
+                tabindex=`${i ? "-1" : "0"}`, 
+                aria-selected="false", 
+                data-badge="0") #{tab}
+        div(role="tabpanel", id=`${treatmentTabs[0]}-panel`, aria-labelledby=`${treatmentTab[0]}-tab`, tabindex="0", hidden)
+            // TODO sided body regions
+            form
+                fieldset
+                    legend Treatment Site
+                    // hidden input
+                    // svg map body regions
+                    // selectively show body region
+                fieldset
+                    legend Treatment Method
+                    // selectively show method selection
+        div(role="tabpanel", id=`${treatmentTabs[1]}-panel`, aria-labelledby=`${treatmentTab[1]}-tab`, tabindex="0", hidden)
+            form
+                fieldset
+                    legend Treatment Site
+                    // hidden input
+                    // svg map body regions
+                fieldset
+                    legend Treatment Method
+                    // selectively show method selection
+        div(role="tabpanel", id=`${treatmentTabs[2]}-panel`, aria-labelledby=`${treatmentTab[2]}-tab`, tabindex="0", hidden)
+            form
+                fieldset
+                    legend Treatment Site
+                    // hidden input
+                    // svg map body regions
+                    // selectively show body region
+                fieldset
+                    legend Treatment Method
+                    // selectively show method selection
